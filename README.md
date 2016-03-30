@@ -1,18 +1,29 @@
 ###Dependencies
-npm package: mysql, node-telegram-bot-api, telegram-bot-bootstrap, telegram-bot-api
+
+Current: npm package: aws-sdk, node-telegram-bot-api
+
+No longer use: mysql, telegram-bot-api, telegram-bot-bootstrap
+
+just use the command below to get all modules automatically:
+
+````npm install````
 
 ###Main Program (nodeBot.js)
+
 而家呢個program暫時都係一個telegram bot, 要用telegram add @testingDriveBot
 
 而家有呢啲command (同bot對話)：
+
 /start
+
 /echo text
 
-未完成：
+####未完成：
+
 /me
+
 /search
 
-要terminal開住node nodeBot.js，個bot先會有反應
 
 [![Stories in Ready](https://badge.waffle.io/zhukov/webogram.png?label=ready&title=Ready)](https://waffle.io/zhukov/webogram)
 ## [Webogram](https://web.telegram.org) — Telegram Web App
