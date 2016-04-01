@@ -16,6 +16,7 @@ AWS.config.update({          // THE KEYS MUST BE MOVED to separated file when in
     region: 'ap-northeast-1'
 });
 var dynamodb = new AWS.DynamoDB();
+var dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 //creating bot of NPM package 'node-telegram-bot-api'
 var bot = new TelegramBot(token, {
@@ -29,8 +30,35 @@ var string = '';    //output string
 
 var contents =["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];                    
 
+//Keyboard Template
+var kb_YN = {
+      //reply_to_message_id: msg.chat.id,
+      reply_markup: JSON.stringify({
+        keyboard: [
+          ['Yes', 'No'],
+          ['No']],
+        one_time_keyboard: true
+
+      }), 
+    };
+
+//try sending keyboard
+//Whenever 
+bot.onText(/\/keyboard/, function(msg, match){
+    chatId = msg.chat.id;
+    bot.sendMessage(chatId, 'This is keyboard', kb_YN);
+    console.log('Finish sending keyboard...');
+});
+
+
 bot.onText(/\/profile/, function(msg,match){
+    var chatId = msg.chat.id;
+    var breaktrue=0;
+
+    bot.sendMessage(chatId, 'Press any button to continue...');
+        
     bot.on('message', function(msg){
+        
         var chatId = msg.chat.id;
         var question = contents[count];
         
@@ -53,7 +81,8 @@ bot.onText(/\/profile/, function(msg,match){
             bot.sendMessage(chatId, string);
         
         };
-    });
+
+        });
 });
 
 function profile(msg){
@@ -99,10 +128,11 @@ function getItemFromDB(test, callback) {    //get items by uid from dynamoDB
     var params = {
         "TableName": "dochat-kpl-user",
         "Key": {
-            "uid": {
+             "uid": {
                 "S": "1"
+                }
             }
-        }
+        
     }
     dynamodb.getItem(params, function(err, result) {
         if (err)
@@ -124,6 +154,34 @@ function setValue(value) {                  //to setValue by callback function
     data.push(value.name.S);
     console.log("SetValue");
 };
+
+function putItemToDB(msg) {    //put item to DB 
+        var params = {
+            TableName: "dochat-kpl-user",
+            Item:{
+                "uid": "2",
+                "name": "David"
+            }         
+        };
+
+        console.log("Adding a new item...");
+        
+        dynamoDB.put(params, function(err, data) {
+            if (err) {
+                console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+            } else {
+                console.log("Added item:", JSON.stringify(data, null, 2));
+            }
+        });
+    
+    console.log("Items are succesfully ingested in table .................."); 
+    };
+
+
+bot.onText(/\/save/, function(msg){
+    console.log('In \/save...')
+    putItemToDB(msg);
+});
 
 //unfinish function
 function nameInput(){                       //will be used for check name format

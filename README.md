@@ -20,13 +20,12 @@ just use the command below to get all modules automatically:
 
 /search
 
-/echo text
+/echo <text>
 
 ####未完成：
 
 /me
 
-/search
 
 
 [![Stories in Ready](https://badge.waffle.io/zhukov/webogram.png?label=ready&title=Ready)](https://waffle.io/zhukov/webogram)
