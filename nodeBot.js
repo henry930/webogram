@@ -28,31 +28,37 @@ var count =0;   //counter for data
 var string = '';    //output string
 
 var contents =["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];                    
-bot.on('message', function(msg){
-    var chatId = msg.chat.id;
-    var question = contents[count];
-    
-    data[count] = msg.text;
-    console.log(count);
-    console.log(data[count]);
-    count++;
-    state++; 
 
-    if (state <= contents.length){
-        bot.sendMessage(chatId, question);
-    }   
-    
-    if(count == contents.length+1){
+bot.onText(/\/profile/, function(msg,match){
+    bot.on('message', function(msg){
+        var chatId = msg.chat.id;
+        var question = contents[count];
         
-        for(var i = 1; i < contents.length+1; i++){
-        string = string+contents[i-1]+': '+data[i]+'\n';
-        };
+        data[count] = msg.text;
+        console.log(count);
+        console.log(data[count]);
+        count++;
+        state++; 
 
-        bot.sendMessage(chatId, string);
-    
-    };
+        if (state <= contents.length){
+            bot.sendMessage(chatId, question);
+        }   
+        
+        if(count == contents.length+1){
+            
+            for(var i = 1; i < contents.length+1; i++){
+            string = string+contents[i-1]+': '+data[i]+'\n';
+            };
+
+            bot.sendMessage(chatId, string);
+        
+        };
+    });
 });
 
+function profile(msg){
+    
+}
 
 //bot commands
 bot.onText(/\/start/, function(msg, match) {    //  /start to send Welcoming message
