@@ -16,6 +16,10 @@ just use the command below to get all modules automatically:
 
 /start
 
+/profile
+
+/search
+
 /echo text
 
 ####未完成：
