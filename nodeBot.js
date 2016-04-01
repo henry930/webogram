@@ -6,7 +6,7 @@ var TelegramBot = require('node-telegram-bot-api');
 var token = '189573317:AAEQXcSxr8YI1F5Zex65_TCvRc_jEtTi4UY';
 
 //declaring global variable
-var data = []; //blank array for callback function to push
+var data = []; //data array
 
 //declaring AWS-related variable
 var AWS = require('aws-sdk'); // For DynamoDB 
@@ -20,6 +20,37 @@ var dynamodb = new AWS.DynamoDB();
 //creating bot of NPM package 'node-telegram-bot-api'
 var bot = new TelegramBot(token, {
     polling: true
+});
+
+var state  = 0; //Questionnaire state
+var start;  //flag of the program start, not yet used
+var count =0;   //counter for data
+var string = '';    //output string
+
+var contents =["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];                    
+bot.on('message', function(msg){
+    var chatId = msg.chat.id;
+    var question = contents[count];
+    
+    data[count] = msg.text;
+    console.log(count);
+    console.log(data[count]);
+    count++;
+    state++; 
+
+    if (state <= contents.length){
+        bot.sendMessage(chatId, question);
+    }   
+    
+    if(count == contents.length+1){
+        
+        for(var i = 1; i < contents.length+1; i++){
+        string = string+contents[i-1]+': '+data[i]+'\n';
+        };
+
+        bot.sendMessage(chatId, string);
+    
+    };
 });
 
 
