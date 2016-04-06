@@ -12,19 +12,29 @@ just use the command below to get all modules automatically:
 
 而家呢個program暫時都係一個telegram bot, 要用telegram add @testingDriveBot
 
-而家有呢啲command (同bot對話)：
+####Command List：
 
-/start
+/start		- send welcoming message 
 
-/profile
+/profile	- create a profile, no data is inserted to dynamoDB
 
-/search
+/newprofile - mainly work as /profile, apply part of input validation
 
-/echo <text>
+/search 	- only use for searching the record with uid = 1 
 
-####未完成：
+/echo text 	- let you echo your text
 
-/me
+####Input Validation Functions (for development):
+
+nameValidate(nameInput): return -1 when nameInput.length <2
+
+ageValidate(ageInput): return -1 when ageInput <18 or ageInput >65
+
+genderValidate(genderInput): return -1 when genderInput not in the two arrays
+
+districtValidate(districtInput): return -1 when districtInput not in the two arrays
+
+selfIntroValidate(selfIntroInput): return -1 when selfIntroInput.length <10
 
 
 
