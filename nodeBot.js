@@ -1,6 +1,9 @@
 //Add require npm package
 var fs = require('fs');
 var TelegramBot = require('node-telegram-bot-api');
+//var Telegram = require('telegram-api');
+var Message = require('telegram-api/types/Message');
+
 
 //declaring bot token
 var token = '189573317:AAEQXcSxr8YI1F5Zex65_TCvRc_jEtTi4UY';
@@ -15,6 +18,8 @@ AWS.config.update({ // THE KEYS MUST BE MOVED to separated file when in producti
     secretAccessKey: 'ehwQtRwdrNGhX2PxnPJgYWiGaE6i5OcDuhR7idbu',
     region: 'ap-northeast-1'
 });
+
+//Note, The second one is for uploading file to DB, do not delete
 var dynamodb = new AWS.DynamoDB();
 var dynamoDB = new AWS.DynamoDB.DocumentClient();
 
@@ -22,6 +27,10 @@ var dynamoDB = new AWS.DynamoDB.DocumentClient();
 var bot = new TelegramBot(token, {
     polling: true
 });
+
+//var tel = new Telegram();
+
+
 
 var state = 0; //Questionnaire state
 var start; //flag of the program start, not yet used
@@ -32,18 +41,6 @@ var contents = ["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Exp
 var userInputContent = ["Name", "Gender", "Age", "WorkType", "Experience", "District", "Photo", "SelfIntro"];
 
 
-//Keyboard Template
-var kb_YN = {
-    //reply_to_message_id: msg.chat.id,
-    reply_markup: JSON.stringify({
-        keyboard: [
-            ['Yes', 'No'],
-            ['No']
-        ],
-        one_time_keyboard: true
-
-    }),
-};
 
 //try sending keyboard
 //Whenever 
@@ -93,6 +90,7 @@ bot.onText(/\/newprofile/, function(msg, match) { // a /profile variation with i
     var breaktrue = 0;
     var continueFlag = true; // change to false when fail input validation                             
     var returnValue = ""; // for the validation return value
+    var keyboard;
 
     var question = "Please enter your " + userInputContent[0];
     bot.sendMessage(chatId, question);
@@ -104,6 +102,7 @@ bot.onText(/\/newprofile/, function(msg, match) { // a /profile variation with i
         switch (userInputContent[count]) { // input validation by calling function
             case "Name":
                 returnValue = nameValidate(msg.text);
+                //keyboard = kb_Hide;
                 if (returnValue === "-1") { // "-1" when char number <2 && input is number
                     continueFlag = false;
                 } else {
@@ -112,6 +111,8 @@ bot.onText(/\/newprofile/, function(msg, match) { // a /profile variation with i
                 break;
 
             case "Gender":
+                console.log('In Gender..');
+                //keyboard = kb_Gender;
                 returnValue = genderValidate(msg.text);
                 if (returnValue === "-1") { // "-1" when input is neither male or female
                     continueFlag = false;
@@ -159,7 +160,7 @@ bot.onText(/\/newprofile/, function(msg, match) { // a /profile variation with i
         }
 
         if (state < userInputContent.length) {
-            bot.sendMessage(chatId, question);
+            bot.sendMessage(chatId, question, chooseKeyboard(userInputContent[count]));
         }
 
         if (count == userInputContent.length) {
@@ -177,7 +178,9 @@ bot.onText(/\/newprofile/, function(msg, match) { // a /profile variation with i
 
 //bot commands
 bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming message
-    var fromId = msg.from.id;
+    console.log('From: '+msg.from.id);
+    console.log('Chat: '+msg.chat.id);
+    var fromId = msg.chat.id;
     var name = bot.getMe().id;
     console.log(bot.getMe());
     var resp = 'Welcome to DoChat';
@@ -221,11 +224,24 @@ bot.onText(/\/photo/, function(msg, match) { // /testing get photo path
     });
 });
 
+bot.onText(/\/message/, function(msg) { // /search now for return the name of uid = 1 from DB
+    console.log('In message...');
+    var fromId = msg.from.id; // will be used to /search (name / id) in future
+    var chatId = msg.chat.id;//getItemFromDB();
+    var answer = new Message().text('Hello, Sir').to(msg.chat.id);
+    //Telegram.messages.addChatUser(fromId, chatId, 0);
+    console.log('Answer: '+answer);
+    bot2.sendMessage(fromId, answer);
+});
+
+
+
 bot.onText(/\/search/, function(msg, match) { // /search now for return the name of uid = 1 from DB
     var fromId = msg.from.id; // will be used to /search (name / id) in future
     getItemFromDB();
     bot.sendMessage(fromId, data[0]);
 });
+
 
 //Database related function
 function getItemFromDB(test, callback) { //get items by uid from dynamoDB
@@ -371,8 +387,53 @@ function confirm(dataInput) { //will be used to ask user for confirmation
     });
 }
 
+function chooseKeyboard(item){
+            //Keyboard Template
+        var kb_YN = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['Yes', 'No']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+
+        //Keyboard Hide
+        var kb_Hide = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+                hide_keyboard: true
+            }),
+        };
+
+        //Keyboard for Gender
+        var kb_Gender = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['Male', 'Female']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+
+        switch(userInputContent[count]){
+            case "Name": 
+                return kb_Hide;
+            case "Gender":
+                return kb_Gender;
+            case "Age":
+                return kb_Hide;
+        }
+}
 
 //unfinish function
+//@Keith: ReplyHandle should also send custom keyboard to user
 function replyHandle() { //will be use to handle the Y/N input from user
     var reply = '';
     bot.onText(/(.+)/, function(msg, match) {

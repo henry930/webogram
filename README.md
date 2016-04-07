@@ -36,6 +36,8 @@ districtValidate(districtInput): return -1 when districtInput not in the two arr
 
 selfIntroValidate(selfIntroInput): return -1 when selfIntroInput.length <10
 
+chooseKeyboard(userInputContent[count]): return suitable customized keyboard //kb Hide = hide the keyboard
+
 
 
 [![Stories in Ready](https://badge.waffle.io/zhukov/webogram.png?label=ready&title=Ready)](https://waffle.io/zhukov/webogram)
