@@ -2,7 +2,7 @@
 var fs = require('fs');
 var TelegramBot = require('node-telegram-bot-api');
 //var Telegram = require('telegram-api');
-var Message = require('telegram-api/types/Message');
+//var Message = require('telegram-api/types/Message');
 
 
 //declaring bot token
@@ -40,8 +40,8 @@ var string = ''; //output string
 var contents = ["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];
 var userInputContent = ["Name", "Gender", "Age", "WorkType", "Experience", "District", "Photo", "SelfIntro"];
 
-
-
+var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數"];
+//var questionArray = [{"中文全名": ""}, {"英文全名": ""}];
 //try sending keyboard
 //Whenever 
 bot.onText(/\/keyboard/, function(msg, match) {
@@ -85,95 +85,164 @@ bot.onText(/\/profile/, function(msg, match) {
     });
 });
 
-bot.onText(/\/newprofile/, function(msg, match) { // a /profile variation with input validation 
+bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
     var chatId = msg.chat.id;
     var breaktrue = 0;
     var continueFlag = true; // change to false when fail input validation                             
     var returnValue = ""; // for the validation return value
     var keyboard;
 
-    var question = "Please enter your " + userInputContent[0];
-    bot.sendMessage(chatId, question);
+    //var question = "Please enter your " + userInputContent[0];
+    console.log('更新用戶資料');
+    //var question = "請選擇需輸入的資料項目"；
+    var question = "請選擇需輸入的資料項目";
+    bot.sendMessage(chatId, question,functionListKeyboard());
 
-    bot.on('message', function(msg) {
-
-        var chatId = msg.chat.id;
-
-        switch (userInputContent[count]) { // input validation by calling function
-            case "Name":
-                returnValue = nameValidate(msg.text);
-                //keyboard = kb_Hide;
-                if (returnValue === "-1") { // "-1" when char number <2 && input is number
-                    continueFlag = false;
-                } else {
-                    continueFlag = true;
-                }
-                break;
-
-            case "Gender":
-                console.log('In Gender..');
-                //keyboard = kb_Gender;
-                returnValue = genderValidate(msg.text);
-                if (returnValue === "-1") { // "-1" when input is neither male or female
-                    continueFlag = false;
-                } else {
-                    continueFlag = true;
-                }
-                break;
-
-            case "Age":
-                returnValue = ageValidate(msg.text);
-                if (returnValue === "-1") { // "-1" when input doesn't lie between 18 and 65
-                    continueFlag = false;
-                } else {
-                    continueFlag = true;
-                }
-                break;
-
-                /*case "Photo":                         // not working, testing by /photo command
-                console.log(msg.photo);
-                continueFlag=true;
-                break;
-            */
-
-            case "SelfIntro":
-                returnValue = selfIntroValidate(msg.text);
-                if (returnValue === "-1") { // "-1" when char number is less than 10
-                    continueFlag = false;
-                } else {
-                    continueFlag = true;
-                }
-                break;
-
-            default:
-                continueFlag = true;
-        }
-
-        if (continueFlag) {
-            data[count] = msg.text;
-            question = "Please enter your " + userInputContent[count + 1];
-            console.log(data[count]);
-            count++;
-            state++;
-        } else {
-            question = "Please re-enter your " + userInputContent[count];
-        }
-
-        if (state < userInputContent.length) {
-            bot.sendMessage(chatId, question, chooseKeyboard(userInputContent[count]));
-        }
-
-        if (count == userInputContent.length) {
-
-            for (var i = 0; i < userInputContent.length; i++) {
-                string = string + userInputContent[i] + ': ' + data[i] + '\n';
-            };
-
-            bot.sendMessage(chatId, string);
-
-        };
-
+    bot.onText(/中文全名/, function(msg, match){
+        console.log('中文全名');   
+        bot.sendMessage(chatId, "請輸入您的中文全名", nilKeyboard());
     });
+
+    bot.onText(/英文全名/, function(msg, match){
+        console.log('英文全名');
+        bot.sendMessage(chatId, "請輸入您的英文全名", nilKeyboard());
+    });
+
+    bot.onText(/電話號碼/, function(msg, match){
+        console.log('電話號碼');
+        bot.sendMessage(chatId, "請輸入您的電話號碼", nilKeyboard());
+    });
+
+    bot.onText(/照片/, function(msg, match){
+        console.log('照片');
+        bot.sendMessage(chatId, "請上傳您的照片", nilKeyboard());
+    });
+
+    bot.onText(/銀行/, function(msg, match){
+        console.log('銀行');
+        bot.sendMessage(chatId, "請選擇您的銀行", bankCateKeyboard());
+    });
+
+    bot.onText(/銀行戶口/, function(msg, match){
+        console.log('銀行戶口');
+        bot.sendMessage(chatId, "請輸入您的銀行戶口", nilKeyboard());
+    });
+
+    bot.onText(/姓別/, function(msg, match){
+        console.log('姓別');
+        bot.sendMessage(chatId, "請選擇您的姓別", genderKeyboard());
+    });
+
+    bot.onText(/出生年份/, function(msg, match){
+        console.log('出生年份');
+        bot.sendMessage(chatId, "請輸入您的出生年份", nilKeyboard());
+    });
+
+    bot.onText(/地區/, function(msg, match){
+        console.log('地區');
+        bot.sendMessage(chatId, "請選擇您的地區", districtKeyboard());
+    });
+
+    bot.onText(/可工作場所/, function(msg, match){
+        console.log('可工作場所');
+        bot.sendMessage(chatId, "請選擇您的可工作場所", nilKeyboard());
+    });
+
+    bot.onText(/銷售經驗/, function(msg, match){
+        console.log('銷售經驗');
+        bot.sendMessage(chatId, "請輸入您的銷售經驗", nilKeyboard());
+    });
+
+    bot.onText(/銷售產品類別/, function(msg, match){
+        console.log('銷售產品類別');
+        bot.sendMessage(chatId, "請選擇您的銷售產品類別", sellCateKeyboard());
+    });
+
+    bot.onText(/工作日數/, function(msg, match){
+        console.log('工作日數');
+        bot.sendMessage(chatId, "請選擇您的工作日數", workDayCateKeyboard());
+    });
+
+    // bot.on('message', function(msg) {
+    //     console.log('Attribute: '+msg);
+    //     var chatId = msg.chat.id;
+
+
+        // switch (userInputContent[count]) { // input validation by calling function
+        //     case "Name":
+        //         returnValue = nameValidate(msg.text);
+        //         //keyboard = kb_Hide;
+        //         if (returnValue === "-1") { // "-1" when char number <2 && input is number
+        //             continueFlag = false;
+        //         } else {
+        //             continueFlag = true;
+        //         }
+        //         break;
+
+        //     case "Gender":
+        //         //console.log('In Gender..');
+        //         //keyboard = kb_Gender;
+        //         returnValue = genderValidate(msg.text);
+        //         if (returnValue === "-1") { // "-1" when input is neither male or female
+        //             continueFlag = false;
+        //         } else {
+        //             continueFlag = true;
+        //         }
+        //         break;
+
+        //     case "Age":
+        //         returnValue = ageValidate(msg.text);
+        //         if (returnValue === "-1") { // "-1" when input doesn't lie between 18 and 65
+        //             continueFlag = false;
+        //         } else {
+        //             continueFlag = true;
+        //         }
+        //         break;
+
+        //         case "Photo":                         // not working, testing by /photo command
+        //         console.log(msg.photo);
+        //         continueFlag=true;
+        //         break;
+            
+
+        //     case "SelfIntro":
+        //         returnValue = selfIntroValidate(msg.text);
+        //         if (returnValue === "-1") { // "-1" when char number is less than 10
+        //             continueFlag = false;
+        //         } else {
+        //             continueFlag = true;
+        //         }
+        //         break;
+
+        //     default:
+        //         continueFlag = true;
+        // }
+
+        // if (continueFlag) {
+        //     data[count] = msg.text;
+        //     question = "Please enter your " + userInputContent[count + 1];
+        //     console.log(data[count]);
+        //     count++;
+        //     state++;
+        // } else {
+        //     question = "Please re-enter your " + userInputContent[count];
+        // }
+
+        // if (state < userInputContent.length) {
+        //     bot.sendMessage(chatId, question, chooseKeyboard(userInputContent[count]));
+        // }
+
+        // if (count == userInputContent.length) {
+
+        //     for (var i = 0; i < userInputContent.length; i++) {
+        //         string = string + userInputContent[i] + ': ' + data[i] + '\n';
+        //     };
+
+            // bot.sendMessage(chatId, string);
+
+        // };
+
+    // });
 });
 
 //bot commands
@@ -184,7 +253,7 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
     var name = bot.getMe().id;
     console.log(bot.getMe());
     var resp = 'Welcome to DoChat';
-    bot.sendMessage(fromId, resp);
+    bot.sendMessage(fromId, resp, initialkeyboard());
 });
 
 bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
@@ -199,6 +268,50 @@ bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
         });
     });
 });
+
+// bot.onText(/Update/,function (msg,match){
+//     JSON.stringify(
+//             {
+//                 "operation":"create",
+//                 "TableName":"dochat-kpl-user",
+//                 "Item":Item
+//             }
+
+//         );
+
+
+
+
+// });
+// bot.onText(/\/optioninput (.+)/,function (msg,match){
+//     bot.on('message', function(msg) {
+//         Item[match[1]]=msg;
+//     });
+// });
+
+// bot.onText(/\/numinput (.+)/,function (msg,match){
+//     bot.on('message', function(msg) {
+//         Item[match[1]]=msg;
+//     });
+// });
+
+// bot.onText(/\/textinput (.+)/,function (msg,match){
+//     bot.on('message', function(msg) {
+
+//         Item[match[1]]=msg;
+
+
+//     });
+// });
+
+bot.onText(/gen/, function(msg) { // /echo
+    console.log('in gen...');
+    var chatId = msg.chat.id;
+    // console.log(questionArray);
+    // console.log(questionArray.length);
+    bot.sendMessage(chatId, "Hello", generateKeyboard());
+});
+
 
 bot.onText(/\/echo (.+)/, function(msg, match) { // /echo
     var fromId = msg.from.id;
@@ -387,6 +500,164 @@ function confirm(dataInput) { //will be used to ask user for confirmation
     });
 }
 
+function initialkeyboard(){
+    console.log('In initialkeyboard...');
+    //send a keyboard layout when bot start
+    var kb_init = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+                resize_keyboard: true,
+                keyboard: [
+                    ['更新用戶資料']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+    return kb_init;
+}
+
+function functionListKeyboard(){
+    var kb_funcList = {
+            //reply_to_message_id: msg.chat.id,
+            resize_keyboard: true,
+            reply_markup: JSON.stringify({
+                keyboard: [
+                    ['中文全名', '英文全名', '電話號碼'],
+                    ['照片', '銀行', '銀行戶口'],
+                    ['姓別', '出生年份', '地區'],
+                    ['可工作場所', '銷售經驗', '銷售產品類別'],
+                    ['工作日數']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+    return kb_funcList;
+}
+
+function bankCateKeyboard(){
+    var kb_bankCate = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['匯豐', '恆生', '渣打', '中銀']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+
+    return kb_bankCate;
+}
+
+function genderKeyboard(){
+    var kb_Gender = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['男', '女']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+
+    return kb_Gender;
+}
+
+function districtKeyboard(){
+    var kb_district = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['屯門', '元朗', '天水圍'],
+                    ['荃灣', '葵涌', '九龍西'], 
+                    ['九龍東', '九龍中', '將軍澳'], 
+                    ['沙田', '馬鞍山', '大埔'], 
+                    ['上水粉嶺', '東涌', '港島'], 
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+        
+    return kb_district;
+}
+
+function workAreaKeyboard(){
+    var kb_workArea = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['超巿', '萬屈', '日資場'],
+                    ['百貨公司', '反斗城', '街藥房']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+    
+    return kb_workArea;
+}
+
+function sellCateKeyboard(){
+    var kb_sellCate = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['食物', '朱古力', '飲品'],
+                    ['健康產品', '清潔用品', '淋浴洗頭產品'],
+                    ['電器', '玩具', '化粧品'],
+                    ['食油', '水餃煮食']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+        
+    return kb_sellCate;
+}
+
+function workDayCateKeyboard(){
+    var kb_workDayCate = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+                resize_keyboard: true,
+                keyboard: [
+                    ['三日檔', '七天檔', '超過十天檔']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+        //三日檔 / 七天檔 / 超過十天檔
+    return kb_workDayCate;
+}
+
+function nilKeyboard(){
+    var kb_nil = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+                keyboard: [ ' '
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+    return kb_nil;
+}
 function chooseKeyboard(item){
             //Keyboard Template
         var kb_YN = {
@@ -394,6 +665,16 @@ function chooseKeyboard(item){
             reply_markup: JSON.stringify({
                 keyboard: [
                     ['Yes', 'No']
+                ],
+                one_time_keyboard: true
+
+            }),
+        };
+
+        var kb_nil = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+                keyboard: [
                 ],
                 one_time_keyboard: true
 
@@ -424,12 +705,29 @@ function chooseKeyboard(item){
 
         switch(userInputContent[count]){
             case "Name": 
-                return kb_Hide;
+                return kb_nil;
             case "Gender":
                 return kb_Gender;
             case "Age":
                 return kb_Hide;
         }
+}
+
+function generateKeyboard(){
+    console.log('length: '+questionArray.length);
+    console.log(questionArray);
+    var kb_generate = {
+            //reply_to_message_id: msg.chat.id,
+            reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: questionArray,
+            one_time_keyboard: true
+
+            }),
+        };
+    console.log(kb_generate);
+    return kb_generate;
 }
 
 //unfinish function
