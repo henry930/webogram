@@ -1,9 +1,7 @@
 //Add require npm package
 var fs = require('fs');
-var TelegramBot = require('node-telegram-bot-api');
-//var Telegram = require('telegram-api');
-//var Message = require('telegram-api/types/Message');
 
+var TelegramBot = require('node-telegram-bot-api');
 
 //declaring bot token
 var token = '189573317:AAEQXcSxr8YI1F5Zex65_TCvRc_jEtTi4UY';
@@ -28,25 +26,18 @@ var bot = new TelegramBot(token, {
     polling: true
 });
 
-//var tel = new Telegram();
-
+//老老實實，有冇用架？！
 var state = 0; //Questionnaire state
 var start; //flag of the program start, not yet used
 var count = 0; //counter for data
 var string = ''; //output string
 
+//Array used to generate keyboards, will be imported in the future, so wont be in this server file
 var contents = ["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];
 var userInputContent = ["Name", "Gender", "Age", "WorkType", "Experience", "District", "Photo", "SelfIntro"];
 
-var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數"];
-//var questionArray = [{"中文全名": ""}, {"英文全名": ""}];
-//try sending keyboard
-//Whenever 
-bot.onText(/\/keyboard/, function(msg, match) {
-    chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'This is keyboard', kb_YN);
-    console.log('Finish sending keyboard...');
-});
+var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數", "儲存", "顯示資料", "返回"];
+var bankName = ["匯豐", "恆生", "渣打", "中銀"];
 
 
 bot.onText(/\/profile/, function(msg, match) {
@@ -83,6 +74,8 @@ bot.onText(/\/profile/, function(msg, match) {
     });
 });
 
+
+//Main Function Now
 bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
     var chatId = msg.chat.id;
     var breaktrue = 0;
@@ -94,7 +87,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
     console.log('更新用戶資料');
     //var question = "請選擇需輸入的資料項目"；
     var question = "請選擇需輸入的資料項目";
-    bot.sendMessage(chatId, question, functionListKeyboard());
+    bot.sendMessage(chatId, question, generateKeyboard(questionArray));
 
     bot.onText(/中文全名$/, function(msg, match) { // 中文全名$ means: any String end with 中文全名
         console.log('中文全名');
@@ -104,7 +97,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -113,7 +106,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                 });
                 console.log(data);
                 inputDone = true;
-                bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
             }
         });
     });
@@ -126,7 +119,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -135,7 +128,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                 });
                 console.log(data);
                 inputDone = true;
-                bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
             }
         });
     });
@@ -148,7 +141,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -159,7 +152,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {
                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請重新輸入您的電話號碼"));
                     inputDone = false;
@@ -176,20 +169,21 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
         })
+        // reply on success, or must have some reply messages
     });
 
     bot.onText(/銀行$/, function(msg, match) { // $ is to prevent bug generated by 銀行 and 銀行戶口
         console.log('銀行');
-        bot.sendMessage(chatId, "請選擇您的銀行", bankCateKeyboard());
+        bot.sendMessage(chatId, "請選擇您的銀行", generateKeyboard(bankName));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -199,7 +193,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -213,7 +207,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)());
             }
 
             if (inputDone === false) {
@@ -223,7 +217,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -231,13 +225,13 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
     bot.onText(/性別$/, function(msg, match) {
         console.log('性別');
-        bot.sendMessage(chatId, "請選擇您的性別", genderKeyboard());
+        bot.sendMessage(chatId, "請選擇您的性別", generateKeyboard(['男', '女']));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -247,9 +241,41 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
+        });
+    });
+
+    bot.onText(/顯示資料$/, function(msg) {
+        console.log('顯示資料');
+        var userinfo ='\n';   //used for storing the well structured output user data
+        
+        for(j=0;j<questionArray.length;j++){
+            for(i=0;i<data.length;i++){
+                if(data[i][questionArray[j]]!==undefined){
+                    //console.log(questionArray[j]);
+                    //console.log(data[i][questionArray[j]].pop());
+
+                    
+                    userinfo = userinfo+questionArray[j]+":"+data[i][questionArray[j]].pop()+"\n";
+                }
+            }
+        }
+
+        console.log("userinfo: "+userinfo);
+
+
+
+        bot.sendMessage(chatId, "您的用戶資料為："+userinfo, generateKeyboard(["返回"]));
+        var inputDone = false;
+
+        bot.on('message', function(msg, match) {
+            if (msg.text === "返回" && inputDone === false) {
+                inputDone = true;
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+            }
+
         });
     });
 
@@ -261,7 +287,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -271,7 +297,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -285,7 +311,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -295,7 +321,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -309,7 +335,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -319,7 +345,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -333,7 +359,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -343,7 +369,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -357,7 +383,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -367,7 +393,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
@@ -381,7 +407,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         bot.on('message', function(msg, match) {
             if (msg.text === "取消更改" && inputDone === false) {
                 inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard());
+                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
             }
 
             if (inputDone === false) {
@@ -391,16 +417,16 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                     });
                     console.log(data);
                     inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", functionListKeyboard()));
+                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
                 } catch (err) {}
             }
         });
     });
 
-    // bot.on('message', function(msg) {
-    //     console.log('Attribute: '+msg);
-    //     var chatId = msg.chat.id;
-
+    bot.onText(/返回$/, function(msg, match){
+        console.log('返回');
+        bot.sendMessage(chatId, "Welcome to DoChat", generateKeyboard(['更新用戶資料']));
+    });
 
     // switch (userInputContent[count]) { // input validation by calling function
     //     case "Name":
@@ -487,7 +513,7 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
     var name = bot.getMe().id;
     console.log(bot.getMe());
     var resp = 'Welcome to DoChat';
-    bot.sendMessage(fromId, resp, initialkeyboard());
+    bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));
 });
 
 bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
@@ -871,20 +897,34 @@ function workDayCateKeyboard() {
     return kb_workDayCate;
 }
 
+//this function really work
 function generateKeyboard(questionArray, hideKeyboard) {
-    console.log('length: ' + questionArray.length);
-    console.log(questionArray);
+    //console.log('length: ' + questionArray.length);
+    //console.log(questionArray);
+    var tempArray = questionArray.slice(0);
+
+    function formKeyboard(a){
+        var keyboardArray = [];
+        //keyboardArray.length = Math.ceil(questionArray.length/3);
+        
+        while (a.length>0){
+            keyboardArray.push(a.splice(0, 3));
+        }   
+        
+        return keyboardArray;
+    }
+
     var kb_generate = {
-        //reply_to_message_id: msg.chat.id,
         reply_markup: JSON.stringify({
 
             resize_keyboard: true,
-            keyboard: [questionArray], // successfully apply dynamic keyboard generation
+            keyboard: 
+                formKeyboard(tempArray), // successfully apply dynamic keyboard generation
             one_time_keyboard: true,
             hide_keyboard: hideKeyboard
         }),
     };
-    console.log(kb_generate);
+    //console.log(kb_generate);
     return kb_generate;
 }
 
