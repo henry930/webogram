@@ -1,6 +1,6 @@
 //Add require npm package
 var fs = require('fs');
-
+var async = require('async');
 var TelegramBot = require('node-telegram-bot-api');
 
 //declaring bot token
@@ -8,6 +8,7 @@ var token = '189573317:AAEQXcSxr8YI1F5Zex65_TCvRc_jEtTi4UY';
 
 //declaring global variable
 var data = []; //data array
+var queryResult = []; // for query use
 
 //declaring AWS-related variable
 var AWS = require('aws-sdk'); // For DynamoDB 
@@ -26,59 +27,21 @@ var bot = new TelegramBot(token, {
     polling: true
 });
 
-//老老實實，有冇用架？！
-var state = 0; //Questionnaire state
-var start; //flag of the program start, not yet used
-var count = 0; //counter for data
-var string = ''; //output string
-
 //Array used to generate keyboards, will be imported in the future, so wont be in this server file
 var contents = ["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];
 var userInputContent = ["Name", "Gender", "Age", "WorkType", "Experience", "District", "Photo", "SelfIntro"];
 
-var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數", "儲存", "顯示資料", "返回"];
+var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數", "儲存", "顯示資料" /* , "返回" */ ];
 var bankName = ["匯豐", "恆生", "渣打", "中銀"];
-
-
-bot.onText(/\/profile/, function(msg, match) {
-    var chatId = msg.chat.id;
-    var breaktrue = 0;
-
-    bot.sendMessage(chatId, 'Press any button to continue...');
-
-    bot.on('message', function(msg) {
-
-        var chatId = msg.chat.id;
-        var question = contents[count];
-
-        data[count] = msg.text;
-        console.log(count);
-        console.log(data[count]);
-        count++;
-        state++;
-
-        if (state <= contents.length) {
-            bot.sendMessage(chatId, question);
-        }
-
-        if (count == contents.length + 1) {
-
-            for (var i = 1; i < contents.length + 1; i++) {
-                string = string + contents[i - 1] + ': ' + data[i] + '\n';
-            };
-
-            bot.sendMessage(chatId, string);
-
-        };
-
-    });
-});
-
+var workDay = ['三日檔', '七天檔', '超過十天檔'];
+var workArea = ['超巿', '萬屈', '日資場', '百貨公司', '反斗城', '街藥房'];
+var gender = ['男', '女'];
+var sellCate = ['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'];
+var district = ['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'];
 
 //Main Function Now
 bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
     var chatId = msg.chat.id;
-    var breaktrue = 0;
     var continueFlag = true; // change to false when fail input validation                             
     var returnValue = ""; // for the validation return value
     var keyboard;
@@ -102,7 +65,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
             if (inputDone === false) {
                 data.push({
-                    '中文全名': [msg.text] // saving in JSON Format
+                    'chiName': [msg.text] // saving in JSON Format
                 });
                 console.log(data);
                 inputDone = true;
@@ -247,27 +210,35 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         });
     });
 
+    bot.onText(/儲存$/, function(msg) {
+        console.log('saving');
+        try {
+            savingFunction(data[0].chiName[0]);
+            console.log('success');
+        } catch (err) {
+            console.log('fail');
+            console.log(err);
+        }
+
+    });
+
     bot.onText(/顯示資料$/, function(msg) {
         console.log('顯示資料');
-        var userinfo ='\n';   //used for storing the well structured output user data
-        
-        for(j=0;j<questionArray.length;j++){
-            for(i=0;i<data.length;i++){
-                if(data[i][questionArray[j]]!==undefined){
+        var userinfo = '\n'; //used for storing the well structured output user data
+
+        for (j = 0; j < questionArray.length; j++) {
+            for (i = 0; i < data.length; i++) {
+                if (data[i][questionArray[j]] !== undefined) {
                     //console.log(questionArray[j]);
                     //console.log(data[i][questionArray[j]].pop());
-
-                    
-                    userinfo = userinfo+questionArray[j]+":"+data[i][questionArray[j]].pop()+"\n";
+                    userinfo = userinfo + questionArray[j] + ":" + data[i][questionArray[j]].pop() + "\n";
                 }
             }
         }
 
-        console.log("userinfo: "+userinfo);
+        console.log("userinfo: " + userinfo);
 
-
-
-        bot.sendMessage(chatId, "您的用戶資料為："+userinfo, generateKeyboard(["返回"]));
+        bot.sendMessage(chatId, "您的用戶資料為：" + userinfo, generateKeyboard(["返回"]));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
@@ -305,7 +276,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
     bot.onText(/地區$/, function(msg, match) {
         console.log('地區');
-        bot.sendMessage(chatId, "請選擇您的地區", districtKeyboard());
+        bot.sendMessage(chatId, "請選擇您的地區", generateKeyboard(district));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
@@ -329,7 +300,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
     bot.onText(/可工作場所$/, function(msg, match) {
         console.log('可工作場所');
-        bot.sendMessage(chatId, "請選擇您的可工作場所", generateKeyboard(["取消更改"]));
+        bot.sendMessage(chatId, "請選擇您的可工作場所", generateKeyboard(workArea));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
@@ -377,7 +348,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
     bot.onText(/銷售產品類別$/, function(msg, match) {
         console.log('銷售產品類別');
-        bot.sendMessage(chatId, "請選擇您的銷售產品類別", sellCateKeyboard());
+        bot.sendMessage(chatId, "請選擇您的銷售產品類別", generateKeyboard(sellCate));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
@@ -401,7 +372,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
     bot.onText(/工作日數$/, function(msg, match) {
         console.log('工作日數');
-        bot.sendMessage(chatId, "請選擇您的工作日數", workDayCateKeyboard());
+        bot.sendMessage(chatId, "請選擇您的工作日數", generateKeyboard(workDay));
         var inputDone = false;
 
         bot.on('message', function(msg, match) {
@@ -423,10 +394,12 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         });
     });
 
-    bot.onText(/返回$/, function(msg, match){
+    /* this button caused some problem
+    bot.onText(/返回$/, function(msg, match) {
         console.log('返回');
         bot.sendMessage(chatId, "Welcome to DoChat", generateKeyboard(['更新用戶資料']));
-    });
+    }); 
+    */
 
     // switch (userInputContent[count]) { // input validation by calling function
     //     case "Name":
@@ -529,6 +502,41 @@ bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
     });
 });
 
+bot.onText(/\/profile/, function(msg, match) {
+    var chatId = msg.chat.id;
+    var breaktrue = 0;
+
+    bot.sendMessage(chatId, 'Press any button to continue...');
+
+    bot.on('message', function(msg) {
+
+        var chatId = msg.chat.id;
+        var question = contents[count];
+
+        data[count] = msg.text;
+        console.log(count);
+        console.log(data[count]);
+        count++;
+        state++;
+
+        if (state <= contents.length) {
+            bot.sendMessage(chatId, question);
+        }
+
+        if (count == contents.length + 1) {
+
+            for (var i = 1; i < contents.length + 1; i++) {
+                string = string + contents[i - 1] + ': ' + data[i] + '\n';
+            };
+
+            bot.sendMessage(chatId, string);
+
+        };
+
+    });
+});
+
+
 // bot.onText(/Update/,function (msg,match){
 //     JSON.stringify(
 //             {
@@ -615,22 +623,22 @@ bot.onText(/\/search/, function(msg, match) { // /search now for return the name
 
 
 //Database related function
-function getItemFromDB(test, callback) { //get items by uid from dynamoDB
+function getItemFromDB(uid, callback) { //get items by uid from dynamoDB
+    uid = uid.toString();
+    //uid="-1";
     var params = {
         "TableName": "dochat-kpl-user",
         "Key": {
-            "uid": {
-                "S": "1"
-            }
+            "uid": {"S":uid},
         }
-
     }
-    dynamodb.getItem(params, function(err, result) {
+    return dynamodb.getItem(params, function(err, result) {
         if (err)
             console.log(err);
         else {
             console.log(result.Item);
             callback && callback(result.Item);
+            return result.Item;
         }
     });
 };
@@ -640,21 +648,26 @@ getItemFromDB(123, function(arr) { //callback function for getItemFromDB()
 });
 
 function setValue(value) { //to setValue by callback function
-    data = [];
-    data.push(value.name.S);
+    queryResult = [];
+    queryResult.push(value);
 };
 
-function putItemToDB(msg) { //put item to DB 
-    var params = {
-        TableName: "dochat-kpl-user",
-        Item: {
-            "uid": "2",
-            "name": "David"
-        }
-    };
+function savingFunction() {
+    var que = async.queue(function (task, callback){
+        console.log('hello ' + task.name);
+    }, 1);
 
-    console.log("Adding a new item...");
+    que.unshift(getItemFromDB(-1), function (err) {
+        console.log('fetched');
+    });
 
+    que.push(counterAsync(), function (err) {
+        console.log('params done');
+        return putItemFromDB(arg);
+    });
+}
+
+function putItemToDB(params) { //put item to DB
     dynamoDB.put(params, function(err, data) {
         if (err) {
             console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
@@ -662,9 +675,27 @@ function putItemToDB(msg) { //put item to DB
             console.log("Added item:", JSON.stringify(data, null, 2));
         }
     });
-
     console.log("Items are succesfully ingested in table ..................");
 };
+
+function counterAsync(array) {
+    uid = queryResult[0].lastUid.S;
+
+    var tableName = 'dochat-kpl-user';
+    var uid = parseInt(uid) + 1;
+    var item = {
+        uid: uid.toString(),
+        chiName: data[0].chiName[0],
+    };
+
+    var params = {
+        TableName: tableName,
+        Item: item
+    };
+
+    console.log("params: "+params);
+    return params;
+}
 
 
 bot.onText(/\/save/, function(msg) {
@@ -751,166 +782,21 @@ function selfIntroValidate(selfIntroInput) { // will be used for self-introducti
     }
 }
 
-function initialkeyboard() {
-    console.log('In initialkeyboard...');
-    //send a keyboard layout when bot start
-    var kb_init = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-            resize_keyboard: true,
-            keyboard: [
-                ['更新用戶資料']
-            ],
-            one_time_keyboard: true
 
-        }),
-    };
-    return kb_init;
-}
-
-function functionListKeyboard() {
-    var kb_funcList = {
-        //reply_to_message_id: msg.chat.id,
-        resize_keyboard: true,
-        reply_markup: JSON.stringify({
-            keyboard: [
-                ['中文全名', '英文全名', '電話號碼'],
-                ['照片', '銀行', '銀行戶口'],
-                ['性別', '出生年份', '地區'],
-                ['可工作場所', '銷售經驗', '銷售產品類別'],
-                ['工作日數']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-    return kb_funcList;
-}
-
-function bankCateKeyboard() {
-    var kb_bankCate = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['匯豐', '恆生', '渣打', '中銀']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-
-    return kb_bankCate;
-}
-
-function genderKeyboard() {
-    var kb_Gender = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['男', '女']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-
-    return kb_Gender;
-}
-
-function districtKeyboard() {
-    var kb_district = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['屯門', '元朗', '天水圍'],
-                ['荃灣', '葵涌', '九龍西'],
-                ['九龍東', '九龍中', '將軍澳'],
-                ['沙田', '馬鞍山', '大埔'],
-                ['上水粉嶺', '東涌', '港島'],
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-
-    return kb_district;
-}
-
-function workAreaKeyboard() {
-    var kb_workArea = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['超巿', '萬屈', '日資場'],
-                ['百貨公司', '反斗城', '街藥房']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-
-    return kb_workArea;
-}
-
-function sellCateKeyboard() {
-    var kb_sellCate = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['食物', '朱古力', '飲品'],
-                ['健康產品', '清潔用品', '淋浴洗頭產品'],
-                ['電器', '玩具', '化粧品'],
-                ['食油', '水餃煮食']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-
-    return kb_sellCate;
-}
-
-function workDayCateKeyboard() {
-    var kb_workDayCate = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['三日檔', '七天檔', '超過十天檔']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-    //三日檔 / 七天檔 / 超過十天檔
-    return kb_workDayCate;
-}
-
-//this function really work
+//keyboards
 function generateKeyboard(questionArray, hideKeyboard) {
     //console.log('length: ' + questionArray.length);
     //console.log(questionArray);
     var tempArray = questionArray.slice(0);
 
-    function formKeyboard(a){
+    function formKeyboard(a) {
         var keyboardArray = [];
         //keyboardArray.length = Math.ceil(questionArray.length/3);
-        
-        while (a.length>0){
+
+        while (a.length > 0) {
             keyboardArray.push(a.splice(0, 3));
-        }   
-        
+        }
+
         return keyboardArray;
     }
 
@@ -918,8 +804,7 @@ function generateKeyboard(questionArray, hideKeyboard) {
         reply_markup: JSON.stringify({
 
             resize_keyboard: true,
-            keyboard: 
-                formKeyboard(tempArray), // successfully apply dynamic keyboard generation
+            keyboard: formKeyboard(tempArray), // successfully apply dynamic keyboard generation
             one_time_keyboard: true,
             hide_keyboard: hideKeyboard
         }),
@@ -1000,6 +885,25 @@ function replyHandle() { //will be use to handle the Y/N input from user
 }
 
 // this function is causing error since keyboard array cannot be empty
+bot.onText(/\/send (.+)/, function(msg, match) { //will be used to send msg to specific user
+    var toId = msg.from.id;
+    var resp = match[1];
+    bot.sendMessage(toId, resp);
+});
+
+/* deprecated function
+function confirm(dataInput) { //will be used to ask user for confirmation
+    var ask = "Are you sure to add " + dataInput + " to your profile? (Y/N)\n";
+    bot.sendMessage(fromId, ask);
+
+    bot.on('message', function(msg) {
+        if (msg == "Y")
+            return dataInput;
+        if (msg == "N")
+            return "-1";
+    });
+}
+
 function nilKeyboard() {
     var kb_nil = {
         //reply_to_message_id: msg.chat.id,
@@ -1012,21 +916,151 @@ function nilKeyboard() {
     return kb_nil;
 }
 
-bot.onText(/\/send (.+)/, function(msg, match) { //will be used to send msg to specific user
-    var toId = msg.from.id;
-    var resp = match[1];
-    bot.sendMessage(toId, resp);
-});
+function bankCateKeyboard() {
+    var kb_bankCate = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
 
-//deprecated function
-function confirm(dataInput) { //will be used to ask user for confirmation
-    var ask = "Are you sure to add " + dataInput + " to your profile? (Y/N)\n";
-    bot.sendMessage(fromId, ask);
+            resize_keyboard: true,
+            keyboard: [
+                ['匯豐', '恆生', '渣打', '中銀']
+            ],
+            one_time_keyboard: true
 
-    bot.on('message', function(msg) {
-        if (msg == "Y")
-            return dataInput;
-        if (msg == "N")
-            return "-1";
-    });
+        }),
+    };
+
+    return kb_bankCate;
 }
+
+function workDayCateKeyboard() {
+    var kb_workDayCate = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: [
+                ['三日檔', '七天檔', '超過十天檔']
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+    //三日檔 / 七天檔 / 超過十天檔
+    return kb_workDayCate;
+}
+
+function functionListKeyboard() {
+    var kb_funcList = {
+        //reply_to_message_id: msg.chat.id,
+        resize_keyboard: true,
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ['中文全名', '英文全名', '電話號碼'],
+                ['照片', '銀行', '銀行戶口'],
+                ['性別', '出生年份', '地區'],
+                ['可工作場所', '銷售經驗', '銷售產品類別'],
+                ['工作日數']
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+    return kb_funcList;
+}
+
+function genderKeyboard() {
+    var kb_Gender = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: [
+                ['男', '女']
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+
+    return kb_Gender;
+}
+
+function workAreaKeyboard() {
+    var kb_workArea = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: [
+                ['超巿', '萬屈', '日資場'],
+                ['百貨公司', '反斗城', '街藥房']
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+
+    return kb_workArea;
+}
+
+function initialkeyboard() {
+    console.log('In initialkeyboard...');
+    //send a keyboard layout when bot start
+    var kb_init = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
+            resize_keyboard: true,
+            keyboard: [
+                ['更新用戶資料']
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+    return kb_init;
+}
+
+function districtKeyboard() {
+    var kb_district = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: [
+                ['屯門', '元朗', '天水圍'],
+                ['荃灣', '葵涌', '九龍西'],
+                ['九龍東', '九龍中', '將軍澳'],
+                ['沙田', '馬鞍山', '大埔'],
+                ['上水粉嶺', '東涌', '港島'],
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+
+    return kb_district;
+}
+
+function sellCateKeyboard() {
+    var kb_sellCate = {
+        //reply_to_message_id: msg.chat.id,
+        reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: [
+                ['食物', '朱古力', '飲品'],
+                ['健康產品', '清潔用品', '淋浴洗頭產品'],
+                ['電器', '玩具', '化粧品'],
+                ['食油', '水餃煮食']
+            ],
+            one_time_keyboard: true
+
+        }),
+    };
+
+    return kb_sellCate;
+}
+
+
+*/

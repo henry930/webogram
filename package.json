@@ -65,6 +65,7 @@
     "st": "^0.5.2"
   },
   "dependencies": {
+    "async": "^2.0.0-rc.3",
     "aws-sdk": "^2.3.0",
     "del": "^1.2.1",
     "event-stream": "^3.3.2",
@@ -89,6 +90,7 @@
     "jquery": "^2.2.3",
     "jsdom": "^8.3.1",
     "node-telegram-bot-api": "^0.21.1",
+    "q": "^1.4.1",
     "run-sequence": "^1.1.5",
     "st": "^0.5.5",
     "telegram-api": "^0.7.1"
