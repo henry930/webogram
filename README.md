@@ -23,6 +23,23 @@ just use the command below to get all modules automatically:
 /search 	- only use for searching the record with uid = 1 
 
 /echo text 	- let you echo your text
+---------------------------------------------------
+2016-4-29 更新 @Keith
+
+1. 大砍，將bot.onText() Generalize 
+2. 新的Function List:
+	generateKeyboard([youArray]);	
+	getItemFromDB();				
+	putItemToDB();					
+	bot.onText(secret)	//For Testing
+---------------------------------------------------
+2016-4-14 更新 @Keith
+
+1. 可以使用generateKeyboard([yourArray]); 
+2. 新增顯示資料／返回 功能
+3. 更新keyboard, 以後function keyboard 可以刪除
+
+---------------------------------------------------
 
 ####Input Validation Functions (for development):
 

@@ -65,6 +65,10 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
     bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));//
 });
 
+bot.onText(/\/secret/, function(msg, match){    //Secret function for internal testing
+
+});
+
 //Main Function
 bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
     //console.log('更新用戶資料');
@@ -109,6 +113,8 @@ function generateKeyboard(questionArray, hideKeyboard) {
     //console.log(kb_generate);
     return kb_generate;
 }
+
+
 //------------------------Everything Below Are Useless ----------21/4/2016-----------------------------------
 //Main Function Now
 bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
@@ -552,52 +558,52 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
 
 
-bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
-    var fromId = msg.from.id;
-    var ask = 'Do you want to start filling in Personal Information? \nY to start. N to abort';
-    bot.sendMessage(fromId, ask).then(function(sended) {
-        var chatId = sended.chat.id;
-        var messageId = sended.message_id;
-        bot.onReplyToMessage(chatId, messageId, function(message) {
-            bot.sendMessage(chatId, 'you typed');
-            console.log('You typed %c', message.text);
-        });
-    });
-});
+// bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
+//     var fromId = msg.from.id;
+//     var ask = 'Do you want to start filling in Personal Information? \nY to start. N to abort';
+//     bot.sendMessage(fromId, ask).then(function(sended) {
+//         var chatId = sended.chat.id;
+//         var messageId = sended.message_id;
+//         bot.onReplyToMessage(chatId, messageId, function(message) {
+//             bot.sendMessage(chatId, 'you typed');
+//             console.log('You typed %c', message.text);
+//         });
+//     });
+// });
 
-bot.onText(/\/profile/, function(msg, match) {
-    var chatId = msg.chat.id;
-    var breaktrue = 0;
+// bot.onText(/\/profile/, function(msg, match) {
+//     var chatId = msg.chat.id;
+//     var breaktrue = 0;
 
-    bot.sendMessage(chatId, 'Press any button to continue...');
+//     bot.sendMessage(chatId, 'Press any button to continue...');
 
-    bot.on('message', function(msg) {
+//     bot.on('message', function(msg) {
 
-        var chatId = msg.chat.id;
-        var question = contents[count];
+//         var chatId = msg.chat.id;
+//         var question = contents[count];
 
-        data[count] = msg.text;
-        //console.log(count);
-        //console.log(data[count]);
-        count++;
-        state++;
+//         data[count] = msg.text;
+//         //console.log(count);
+//         //console.log(data[count]);
+//         count++;
+//         state++;
 
-        if (state <= contents.length) {
-            bot.sendMessage(chatId, question);
-        }
+//         if (state <= contents.length) {
+//             bot.sendMessage(chatId, question);
+//         }
 
-        if (count == contents.length + 1) {
+//         if (count == contents.length + 1) {
 
-            for (var i = 1; i < contents.length + 1; i++) {
-                string = string + contents[i - 1] + ': ' + data[i] + '\n';
-            };
+//             for (var i = 1; i < contents.length + 1; i++) {
+//                 string = string + contents[i - 1] + ': ' + data[i] + '\n';
+//             };
 
-            bot.sendMessage(chatId, string);
+//             bot.sendMessage(chatId, string);
 
-        };
+//         };
 
-    });
-});
+//     });
+// });
 
 
 // bot.onText(/Update/,function (msg,match){
@@ -817,84 +823,84 @@ bot.onText(/\/save/, function(msg) {
     //putItemToDB(counterAsync(id));
 });
 
-//Input Validation
-function nameValidate(nameInput) { //will be used for name input validation
-    if (nameInput.length >= 3 && isNaN(nameInput))
-        console.log("Name OK");
-    else
-        return "-1";
-}
+// //Input Validation
+// function nameValidate(nameInput) { //will be used for name input validation
+//     if (nameInput.length >= 3 && isNaN(nameInput))
+//         console.log("Name OK");
+//     else
+//         return "-1";
+// }
 
-function ageValidate(ageInput) { //will be used for age input validation
-    if (Number(ageInput) >= 18 && Number(ageInput) <= 65) {
-        console.log("Age OK");
-    } else {
-        return "-1";
-    }
-}
+// function ageValidate(ageInput) { //will be used for age input validation
+//     if (Number(ageInput) >= 18 && Number(ageInput) <= 65) {
+//         console.log("Age OK");
+//     } else {
+//         return "-1";
+//     }
+// }
 
-function genderValidate(genderInput) { //will be used for gender input validation
-    var validCounter = false;
-    var maleString = ["male", "m", "man", "boy"];
-    var femaleString = ["female", "f", "woman", "girl", "lady"];
+// function genderValidate(genderInput) { //will be used for gender input validation
+//     var validCounter = false;
+//     var maleString = ["male", "m", "man", "boy"];
+//     var femaleString = ["female", "f", "woman", "girl", "lady"];
 
-    for (var i = 0; i < maleString.length; i++) {
-        if (genderInput.toLowerCase() === maleString[i]) {
-            validCounter = true;
-            return "Male";
-        }
-    }
+//     for (var i = 0; i < maleString.length; i++) {
+//         if (genderInput.toLowerCase() === maleString[i]) {
+//             validCounter = true;
+//             return "Male";
+//         }
+//     }
 
-    for (var i = 0; i < femaleString.length; i++) {
-        if (genderInput.toLowerCase() === femaleString[i]) {
-            validCounter = true;
-            return "Female";
-        }
-    }
+//     for (var i = 0; i < femaleString.length; i++) {
+//         if (genderInput.toLowerCase() === femaleString[i]) {
+//             validCounter = true;
+//             return "Female";
+//         }
+//     }
 
-    if (validCounter === false)
-        return "-1";
-}
+//     if (validCounter === false)
+//         return "-1";
+// }
 
-function telephoneValidate(telephoneInput) {
-    if (telephoneInput.length != 8)
-        throw "error";
-}
+// function telephoneValidate(telephoneInput) {
+//     if (telephoneInput.length != 8)
+//         throw "error";
+// }
 
-function workExpValidate(workExpInput) { //will be used for working experience input validation
-    //unfinished
-}
+// function workExpValidate(workExpInput) { //will be used for working experience input validation
+//     //unfinished
+// }
 
-function districtValidate(districtInput) { //will be used for district input validation
-    var validCounter = false;
-    var districtChiString = ["離島區", "葵青區", "北區", "西貢區", "沙田區", "大埔區", "荃灣區", "屯門區", "元朗區", "九龍城區", "觀塘區", "深水埗區", "黃大仙區", "油尖旺區", "中西區", "東區", "南區", "灣仔區"];
-    var districtEngString = ["Islands", "Kwai Tsing", "North", "Sai Kung", "Sha Tin", "Tai Po", "Tsuen Wan", "Tuen Mun", "Yuen Long", "Kowloon City", "Kwun Tong", "Sham Shui Po", "Wong Tai Sin", "Yau Tsim Mong", "Central & Western", "Eastern", "Southern", "Wan Chai"];
+// function districtValidate(districtInput) { //will be used for district input validation
+//     var validCounter = false;
+//     var districtChiString = ["離島區", "葵青區", "北區", "西貢區", "沙田區", "大埔區", "荃灣區", "屯門區", "元朗區", "九龍城區", "觀塘區", "深水埗區", "黃大仙區", "油尖旺區", "中西區", "東區", "南區", "灣仔區"];
+//     var districtEngString = ["Islands", "Kwai Tsing", "North", "Sai Kung", "Sha Tin", "Tai Po", "Tsuen Wan", "Tuen Mun", "Yuen Long", "Kowloon City", "Kwun Tong", "Sham Shui Po", "Wong Tai Sin", "Yau Tsim Mong", "Central & Western", "Eastern", "Southern", "Wan Chai"];
 
-    for (var i = 0; i < 18; i++) {
-        if (districtInput === districtChiString[i]) {
-            validCounter = true;
-            return districtChiString[i];
-        }
-    }
+//     for (var i = 0; i < 18; i++) {
+//         if (districtInput === districtChiString[i]) {
+//             validCounter = true;
+//             return districtChiString[i];
+//         }
+//     }
 
-    for (var i = 0; i < 18; i++) {
-        if (districtInput.toLowerCase() === districtEngString[i].toLowerCase()) {
-            validCounter = true;
-            return districtChiString[i];
-        }
-    }
+//     for (var i = 0; i < 18; i++) {
+//         if (districtInput.toLowerCase() === districtEngString[i].toLowerCase()) {
+//             validCounter = true;
+//             return districtChiString[i];
+//         }
+//     }
 
-    if (validCounter === false)
-        return "-1";
-}
+//     if (validCounter === false)
+//         return "-1";
+// }
 
-function selfIntroValidate(selfIntroInput) { // will be used for self-introduction input validation
-    if (selfIntroInput.length >= 10) {
-        console.log("Intro OK");
-    } else {
-        return "-1";
-    }
-}
+// function selfIntroValidate(selfIntroInput) { // will be used for self-introduction input validation
+//     if (selfIntroInput.length >= 10) {
+//         console.log("Intro OK");
+//     } else {
+//         return "-1";
+//     }
+// }
 
 
 
@@ -956,19 +962,19 @@ function selfIntroValidate(selfIntroInput) { // will be used for self-introducti
 //unfinish function
 
 //@Keith: ReplyHandle should also send custom keyboard to user
-function replyHandle() { //will be use to handle the Y/N input from user
-    var reply = '';
-    bot.onText(/(.+)/, function(msg, match) {
-        if (match[1] == 'Y') {
-            reply = 'continue';
-            bot.sendMessage(fromId, reply);
-        }
-        if (match[1] == 'N') {
-            reply = 'stop';
-            bot.sendMessage(fromId, reply);
-        };
-    });
-}
+// function replyHandle() { //will be use to handle the Y/N input from user
+//     var reply = '';
+//     bot.onText(/(.+)/, function(msg, match) {
+//         if (match[1] == 'Y') {
+//             reply = 'continue';
+//             bot.sendMessage(fromId, reply);
+//         }
+//         if (match[1] == 'N') {
+//             reply = 'stop';
+//             bot.sendMessage(fromId, reply);
+//         };
+//     });
+// }
 
 //ok, throw the following send function away
 // this function is causing error since keyboard array cannot be empty
