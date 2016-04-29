@@ -77,10 +77,9 @@ bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with in
     var resp = "請選擇需輸入的資料項目";
     bot.sendMessage(chatId, resp, generateKeyboard(questionArray));
     
-    bot.onText(/$(.+)/, function(msg, match) { // /echo
-    var fromId = msg.from.id;
+    bot.onText(/(.+)/, function(msg, match) { // /echo
     var resp = "請輸入"+match[1]+": ";
-    bot.sendMessage(fromId, resp,generateKeyboard(questionObject[match[1]]));
+    bot.sendMessage(chatId, resp,generateKeyboard(questionObject[match[1]]));
     });
 
 });
