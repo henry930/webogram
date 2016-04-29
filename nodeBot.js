@@ -9,6 +9,7 @@ var token = '189573317:AAEQXcSxr8YI1F5Zex65_TCvRc_jEtTi4UY';
 //declaring global variable
 var data = []; //data array
 var queryResult = []; // for query use
+var form = [];  //make data to become the correct format
 
 //declaring AWS-related variable
 var AWS = require('aws-sdk'); // For DynamoDB 
@@ -39,6 +40,76 @@ var gender = ['男', '女'];
 var sellCate = ['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'];
 var district = ['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'];
 
+var questionObject = {  中文全名:"",
+                        英文全名:"",
+                        電話號碼:"",
+                        照片:"",
+                        銀行:["匯豐", "恆生", "渣打", "中銀"],
+                        銀行戶口:"",
+                        性別:['男', '女'],
+                        出生年份:"",
+                        地區:['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'],
+                        可工作場所:['超巿', '萬屈', '日資場', '百貨公司', '反斗城', '街藥房'],
+                        銷售經驗:"",
+                        銷售產品類別:['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'],
+                        工作日數:['三日檔', '七天檔', '超過十天檔'],
+                        顯示資料:""
+                    };
+//starting server
+console.log('Starting nodeBot.js on localhost...');
+
+//Initialize Bot
+bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming message
+    var fromId = msg.from.id;
+    var resp = 'Welcome to DoChat';
+    bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));//
+});
+
+//Main Function
+bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
+    //console.log('更新用戶資料');
+
+    var chatId = msg.from.id;
+    var resp = "請選擇需輸入的資料項目";
+    bot.sendMessage(chatId, resp, generateKeyboard(questionArray));
+    
+    bot.onText(/$(.+)/, function(msg, match) { // /echo
+    var fromId = msg.from.id;
+    var resp = "請輸入"+match[1]+": ";
+    bot.sendMessage(fromId, resp,generateKeyboard(questionObject[match[1]]));
+    });
+
+});
+
+//Keyboard Generation
+function generateKeyboard(questionArray, hideKeyboard) {
+    console.log(questionArray.length);
+    var tempArray = questionArray.slice(0);
+
+    function formKeyboard(a) {
+        var keyboardArray = [];
+        //keyboardArray.length = Math.ceil(questionArray.length/3);
+
+        while (a.length > 0) {
+            keyboardArray.push(a.splice(0, 3));
+        }
+
+        return keyboardArray;
+    }
+
+    var kb_generate = {
+        reply_markup: JSON.stringify({
+
+            resize_keyboard: true,
+            keyboard: formKeyboard(tempArray), // successfully apply dynamic keyboard generation
+            one_time_keyboard: true,
+            hide_keyboard: hideKeyboard
+        }),
+    };
+    //console.log(kb_generate);
+    return kb_generate;
+}
+//------------------------Everything Below Are Useless ----------21/4/2016-----------------------------------
 //Main Function Now
 bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
     var chatId = msg.chat.id;
@@ -50,7 +121,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
     console.log('更新用戶資料');
     //var question = "請選擇需輸入的資料項目"；
     var question = "請選擇需輸入的資料項目";
-    bot.sendMessage(chatId, question, generateKeyboard(questionArray));
+    //bot.sendMessage(chatId, question, generateKeyboard(questionArray));
 
     bot.onText(/中文全名$/, function(msg, match) { // 中文全名$ means: any String end with 中文全名
         console.log('中文全名');
@@ -65,7 +136,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
             if (inputDone === false) {
                 data.push({
-                    'chiName': [msg.text] // saving in JSON Format
+                    '中文全名': msg.text // saving in JSON Format
                 });
                 console.log(data);
                 inputDone = true;
@@ -87,7 +158,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
             if (inputDone === false) {
                 data.push({
-                    '英文全名': [msg.text]
+                    '英文全名': msg.text
                 });
                 console.log(data);
                 inputDone = true;
@@ -111,7 +182,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                 try {
                     telephoneValidate(msg.text);
                     data.push({
-                        '電話號碼': [msg.text]
+                        '電話號碼': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -126,7 +197,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 
     bot.onText(/照片$/, function(msg, match) {
         console.log('照片');
-        bot.sendMessage(chatId, "請上傳您的照片", generateKeyboard(["取消更改"]));
+        bot.sendMessage(chatId, "請上傳您的照片...上載需時...請耐心等待", generateKeyboard(["取消更改"]));
         var inputDone = false;
 
         bot.on('message', function(msg) {
@@ -138,29 +209,29 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         // reply on success, or must have some reply messages
     });
 
-    bot.onText(/銀行$/, function(msg, match) { // $ is to prevent bug generated by 銀行 and 銀行戶口
-        console.log('銀行');
-        bot.sendMessage(chatId, "請選擇您的銀行", generateKeyboard(bankName));
-        var inputDone = false;
+        // bot.onText(/銀行$/, function(msg, match) { // $ is to prevent bug generated by 銀行 and 銀行戶口
+        //     console.log('銀行');
+        //     bot.sendMessage(chatId, "請選擇您的銀行", generateKeyboard(bankName));
+        //     var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+        //     bot.on('message', function(msg, match) {
+        //         if (msg.text === "取消更改" && inputDone === false) {
+        //             inputDone = true;
+        //             bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+        //         }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '銀行': [msg.text]
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+        //         if (inputDone === false) {
+        //             try {
+        //                 data.push({
+        //                     '銀行': msg.text
+        //                 });
+        //                 console.log(data);
+        //                 inputDone = true;
+        //                 bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+        //             } catch (err) {}
+        //         }
+        //     });
+        // });
 
     bot.onText(/銀行戶口$/, function(msg, match) { // RegExp introduction at http://www.w3schools.com/jsref/jsref_obj_regexp.asp
         console.log('銀行戶口');
@@ -176,7 +247,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '銀行戶口': [msg.text]
+                        '銀行戶口': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -200,7 +271,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '性別': [msg.text]
+                        '性別': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -210,17 +281,18 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
         });
     });
 
-    bot.onText(/儲存$/, function(msg) {
-        console.log('saving');
-        try {
-            savingFunction(data[0].chiName[0]);
-            console.log('success');
-        } catch (err) {
-            console.log('fail');
-            console.log(err);
-        }
+    // bot.onText(/儲存$/, function(msg) {
+    //     var chatId = msg.from.id;
+    //     console.log(chatId);
+    //     try {
+    //         savingFunction(chatId, data);
+    //         console.log('Save success');
+    //     } catch (err) {
+    //         console.log('Save Failed');
+    //         console.log(err);
+    //     }
 
-    });
+    // });
 
     bot.onText(/顯示資料$/, function(msg) {
         console.log('顯示資料');
@@ -231,7 +303,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
                 if (data[i][questionArray[j]] !== undefined) {
                     //console.log(questionArray[j]);
                     //console.log(data[i][questionArray[j]].pop());
-                    userinfo = userinfo + questionArray[j] + ":" + data[i][questionArray[j]].pop() + "\n";
+                    userinfo = userinfo + questionArray[j] + ":" + data[i].questionArray[j].pop() + "\n";
                 }
             }
         }
@@ -264,7 +336,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '出生年份': [msg.text]
+                        '出生年份': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -288,7 +360,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '地區': [msg.text]
+                        '地區': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -312,7 +384,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '可工作場所': [msg.text]
+                        '可工作場所': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -336,7 +408,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '銷售經驗': [msg.text]
+                        '銷售經驗': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -360,7 +432,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '銷售產品類別': [msg.text]
+                        '銷售產品類別': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -384,7 +456,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
             if (inputDone === false) {
                 try {
                     data.push({
-                        '工作日數': [msg.text]
+                        '工作日數': msg.text
                     });
                     console.log(data);
                     inputDone = true;
@@ -478,16 +550,7 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
     // });
 });
 
-//bot commands
-bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming message
-    console.log('From: ' + msg.from.id);
-    console.log('Chat: ' + msg.chat.id);
-    var fromId = msg.chat.id;
-    var name = bot.getMe().id;
-    console.log(bot.getMe());
-    var resp = 'Welcome to DoChat';
-    bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));
-});
+
 
 bot.onText(/\/me/, function(msg, match) { // /me to add user info by user
     var fromId = msg.from.id;
@@ -514,8 +577,8 @@ bot.onText(/\/profile/, function(msg, match) {
         var question = contents[count];
 
         data[count] = msg.text;
-        console.log(count);
-        console.log(data[count]);
+        //console.log(count);
+        //console.log(data[count]);
         count++;
         state++;
 
@@ -572,22 +635,32 @@ bot.onText(/\/profile/, function(msg, match) {
 //     });
 // });
 
-bot.onText(/gen/, function(msg) { // /echo
-    console.log('in gen...');
-    var chatId = msg.chat.id;
-    // console.log(questionArray);
-    // console.log(questionArray.length);
-    bot.sendMessage(chatId, "Hello", generateKeyboard(['HI', 'test']));
-});
+// bot.onText(/gen/, function(msg) { // /echo
+//     console.log('in gen...');
+//     var chatId = msg.chat.id;
+//     // console.log(questionArray);
+//     // console.log(questionArray.length);
+//     bot.sendMessage(chatId, "Hello", generateKeyboard(['HI', 'test']));
+// });
 
+// var keyb = {};
 
-bot.onText(/\/echo (.+)/, function(msg, match) { // /echo
-    var fromId = msg.from.id;
+// keyb['gender']=['Man','Woman'];
 
-    var resp = 'You said: ' + match[1];
-    bot.sendMessage(fromId, resp);
-});
+// bot.onText(/\/(.+)String/, function(msg, match) { // /echo
+//     var fromId = msg.from.id;
 
+//     var resp = 'You said: ' + match[1];
+//     bot.sendMessage(fromId, resp);
+// });
+// bot.onText(/\/(.+)Array/, function(msg, match) { // /echo
+//     var fromId = msg.from.id;
+
+//     var resp = 'You said: ' + match[1];
+//     key = match[1];
+//     console.log(key);
+//     bot.sendMessage(fromId, resp,generateKeyboard(keyb[key]));
+// });
 bot.onText(/\/photo/, function(msg, match) { // /testing get photo path
     var fromId = msg.from.id;
 
@@ -636,7 +709,6 @@ function getItemFromDB(uid, callback) { //get items by uid from dynamoDB
         if (err)
             console.log(err);
         else {
-            console.log(result.Item);
             callback && callback(result.Item);
             return result.Item;
         }
@@ -652,19 +724,58 @@ function setValue(value) { //to setValue by callback function
     queryResult.push(value);
 };
 
-function savingFunction() {
-    var que = async.queue(function (task, callback){
-        console.log('hello ' + task.name);
-    }, 1);
+function savingFunction(id, data) {
+    // var que = async.queue(function (task, callback){
+    //     console.log(task.name);
+    // }, 1);
 
-    que.unshift(getItemFromDB(-1), function (err) {
-        console.log('fetched');
-    });
+    // que.unshift(getItemFromDB(-1), function (err) {
+    //     console.log(getItemFromDB(-1));
+    //     console.log('fetched');
+    //     console(err);
+    // });
 
-    que.push(counterAsync(), function (err) {
-        console.log('params done');
-        return putItemFromDB(arg);
-    });
+    // que.push(counterAsync(), function (err) {
+    //     console.log('params done');
+    //     return putItemToDB(counterAsync());
+    // });
+    console.log(id);
+    console.log(data);
+    var param = buildParam(id, data);
+    putItemToDB(param);
+}
+
+function buildParam(id, data){
+    console.log('buildParam');
+    var tableName = 'dochat-kpl-user';
+    var item = {
+        uid: id.toString(),
+        //chiName: 'abcdefg'
+        //generateForm(data),
+        chiName: data,
+    };
+    var params = {
+        TableName: tableName,
+        Item: item
+    };
+
+    return params;
+}
+
+function genereateForm(data){
+    console.log('genereateForm');
+
+    var tempData = data.slice(0);
+    var dataObj = {};
+
+    for(var i = 0; i<tempData.length; i++){
+        dataObj[tempData[i]] = '3333';
+    }
+
+    console.log(dataObj);
+
+
+    //return putForm;
 }
 
 function putItemToDB(params) { //put item to DB
@@ -678,29 +789,32 @@ function putItemToDB(params) { //put item to DB
     console.log("Items are succesfully ingested in table ..................");
 };
 
-function counterAsync(array) {
-    uid = queryResult[0].lastUid.S;
+// function counterAsync() {
+//     var uid = '4';
+//     //uid = queryResult[0].lastUid.S;
+//     //console.log(queryResult[0]);
+//     var tableName = 'dochat-kpl-user';
+//     //var uid = parseInt(uid) + 1;
+//     var item = {
+//         uid: uid.toString(),
+//         //chiName: 'abcdefg'
+//         chiName: data[0].chiName[0],
+//     };
 
-    var tableName = 'dochat-kpl-user';
-    var uid = parseInt(uid) + 1;
-    var item = {
-        uid: uid.toString(),
-        chiName: data[0].chiName[0],
-    };
+//     var params = {
+//         TableName: tableName,
 
-    var params = {
-        TableName: tableName,
-        Item: item
-    };
+//         Item: item
+//     };
 
-    console.log("params: "+params);
-    return params;
-}
+//     return params;
+// }
 
 
 bot.onText(/\/save/, function(msg) {
-    console.log('In \/save...')
-    putItemToDB(msg);
+    console.log('In \/save...');
+    genereateForm(data);    
+    //putItemToDB(counterAsync(id));
 });
 
 //Input Validation
@@ -783,89 +897,61 @@ function selfIntroValidate(selfIntroInput) { // will be used for self-introducti
 }
 
 
-//keyboards
-function generateKeyboard(questionArray, hideKeyboard) {
-    //console.log('length: ' + questionArray.length);
-    //console.log(questionArray);
-    var tempArray = questionArray.slice(0);
 
-    function formKeyboard(a) {
-        var keyboardArray = [];
-        //keyboardArray.length = Math.ceil(questionArray.length/3);
 
-        while (a.length > 0) {
-            keyboardArray.push(a.splice(0, 3));
-        }
+// function chooseKeyboard(item) {
+//     //Keyboard Template
+//     var kb_YN = {
+//         //reply_to_message_id: msg.chat.id,
+//         reply_markup: JSON.stringify({
+//             keyboard: [
+//                 ['Yes', 'No']
+//             ],
+//             one_time_keyboard: true
 
-        return keyboardArray;
-    }
+//         }),
+//     };
 
-    var kb_generate = {
-        reply_markup: JSON.stringify({
+//     var kb_nil = {
+//         //reply_to_message_id: msg.chat.id,
+//         reply_markup: JSON.stringify({
+//             keyboard: [],
+//             one_time_keyboard: true
 
-            resize_keyboard: true,
-            keyboard: formKeyboard(tempArray), // successfully apply dynamic keyboard generation
-            one_time_keyboard: true,
-            hide_keyboard: hideKeyboard
-        }),
-    };
-    //console.log(kb_generate);
-    return kb_generate;
-}
+//         }),
+//     };
 
-function chooseKeyboard(item) {
-    //Keyboard Template
-    var kb_YN = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-            keyboard: [
-                ['Yes', 'No']
-            ],
-            one_time_keyboard: true
+//     //Keyboard Hide
+//     var kb_Hide = {
+//         //reply_to_message_id: msg.chat.id,
+//         reply_markup: JSON.stringify({
+//             hide_keyboard: true
+//         }),
+//     };
 
-        }),
-    };
+//     //Keyboard for Gender
+//     var kb_Gender = {
+//         //reply_to_message_id: msg.chat.id,
+//         reply_markup: JSON.stringify({
 
-    var kb_nil = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-            keyboard: [],
-            one_time_keyboard: true
+//             resize_keyboard: true,
+//             keyboard: [
+//                 ['Male', 'Female']
+//             ],
+//             one_time_keyboard: true
 
-        }),
-    };
+//         }),
+//     };
 
-    //Keyboard Hide
-    var kb_Hide = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-            hide_keyboard: true
-        }),
-    };
-
-    //Keyboard for Gender
-    var kb_Gender = {
-        //reply_to_message_id: msg.chat.id,
-        reply_markup: JSON.stringify({
-
-            resize_keyboard: true,
-            keyboard: [
-                ['Male', 'Female']
-            ],
-            one_time_keyboard: true
-
-        }),
-    };
-
-    switch (userInputContent[count]) {
-        case "Name":
-            return kb_nil;
-        case "Gender":
-            return kb_Gender;
-        case "Age":
-            return kb_Hide;
-    }
-}
+//     switch (userInputContent[count]) {
+//         case "Name":
+//             return kb_nil;
+//         case "Gender":
+//             return kb_Gender;
+//         case "Age":
+//             return kb_Hide;
+//     }
+// }
 
 //unfinish function
 
@@ -884,12 +970,13 @@ function replyHandle() { //will be use to handle the Y/N input from user
     });
 }
 
+//ok, throw the following send function away
 // this function is causing error since keyboard array cannot be empty
-bot.onText(/\/send (.+)/, function(msg, match) { //will be used to send msg to specific user
-    var toId = msg.from.id;
-    var resp = match[1];
-    bot.sendMessage(toId, resp);
-});
+// bot.onText(/\/send (.+)/, function(msg, match) { //will be used to send msg to specific user
+//     var toId = msg.from.id;
+//     var resp = match[1];
+//     bot.sendMessage(toId, resp);
+// });
 
 /* deprecated function
 function confirm(dataInput) { //will be used to ask user for confirmation
