@@ -114,447 +114,540 @@ function generateKeyboard(questionArray, hideKeyboard) {
     return kb_generate;
 }
 
+//DataBase Related Function
+
+//get
+function getItemFromDB(uid, callback) { //get items by uid from dynamoDB
+    uid = uid.toString();
+    //uid="-1";
+    var params = {
+        "TableName": "dochat-kpl-user",
+        "Key": {
+            "uid": {"S":uid},
+        }
+    }
+    return dynamodb.getItem(params, function(err, result) {
+        if (err)
+            console.log(err);
+        else {
+            callback && callback(result.Item);
+            return result.Item;
+        }
+    });
+};
+
+getItemFromDB(123, function(arr) { //callback function for getItemFromDB()
+    setValue(arr);
+});
+
+function setValue(value) { //to setValue by callback function
+    queryResult = [];
+    queryResult.push(value);
+};
+
+//put
+function savingFunction(id, data) {
+    // var que = async.queue(function (task, callback){
+    //     console.log(task.name);
+    // }, 1);
+
+    // que.unshift(getItemFromDB(-1), function (err) {
+    //     console.log(getItemFromDB(-1));
+    //     console.log('fetched');
+    //     console(err);
+    // });
+
+    // que.push(counterAsync(), function (err) {
+    //     console.log('params done');
+    //     return putItemToDB(counterAsync());
+    // });
+    console.log(id);
+    console.log(data);
+    var param = buildParam(id, data);
+    putItemToDB(param);
+}
+
+function buildParam(id, data){
+    console.log('buildParam');
+    var tableName = 'dochat-kpl-user';
+    var item = {
+        uid: id.toString(),
+        //chiName: 'abcdefg'
+        //generateForm(data),
+        chiName: data,
+    };
+    var params = {
+        TableName: tableName,
+        Item: item
+    };
+
+    return params;
+}
+
+function genereateForm(data){
+    console.log('genereateForm');
+
+    var tempData = data.slice(0);
+    var dataObj = {};
+
+    for(var i = 0; i<tempData.length; i++){
+        dataObj[tempData[i]] = '3333';
+    }
+    console.log(dataObj);
+    //return putForm;
+}
+
+function putItemToDB(params) { //put item to DB
+    dynamoDB.put(params, function(err, data) {
+        if (err) {
+            console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+        } else {
+            console.log("Added item:", JSON.stringify(data, null, 2));
+        }
+    });
+    console.log("Items are succesfully ingested in table ..................");
+};
 
 //------------------------Everything Below Are Useless ----------21/4/2016-----------------------------------
 //Main Function Now
-bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
-    var chatId = msg.chat.id;
-    var continueFlag = true; // change to false when fail input validation                             
-    var returnValue = ""; // for the validation return value
-    var keyboard;
+// bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
+//     var chatId = msg.chat.id;
+//     var continueFlag = true; // change to false when fail input validation                             
+//     var returnValue = ""; // for the validation return value
+//     var keyboard;
 
-    //var question = "Please enter your " + userInputContent[0];
-    console.log('更新用戶資料');
-    //var question = "請選擇需輸入的資料項目"；
-    var question = "請選擇需輸入的資料項目";
-    //bot.sendMessage(chatId, question, generateKeyboard(questionArray));
+//     //var question = "Please enter your " + userInputContent[0];
+//     console.log('更新用戶資料');
+//     //var question = "請選擇需輸入的資料項目"；
+//     var question = "請選擇需輸入的資料項目";
+//     //bot.sendMessage(chatId, question, generateKeyboard(questionArray));
 
-    bot.onText(/中文全名$/, function(msg, match) { // 中文全名$ means: any String end with 中文全名
-        console.log('中文全名');
-        bot.sendMessage(chatId, "請輸入您的中文全名", generateKeyboard(["取消更改"])); // generateKeyboard() is now edited
-        var inputDone = false; // use as a flag to stop JavaScript weird behavior
+//     bot.onText(/中文全名$/, function(msg, match) { // 中文全名$ means: any String end with 中文全名
+//         console.log('中文全名');
+//         bot.sendMessage(chatId, "請輸入您的中文全名", generateKeyboard(["取消更改"])); // generateKeyboard() is now edited
+//         var inputDone = false; // use as a flag to stop JavaScript weird behavior
 
-        bot.on('message', function(msg) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                data.push({
-                    '中文全名': msg.text // saving in JSON Format
-                });
-                console.log(data);
-                inputDone = true;
-                bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 data.push({
+//                     '中文全名': msg.text // saving in JSON Format
+//                 });
+//                 console.log(data);
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//             }
+//         });
+//     });
 
-    bot.onText(/英文全名$/, function(msg, match) {
-        console.log('英文全名');
-        bot.sendMessage(chatId, "請輸入您的英文全名", generateKeyboard(["取消更改"]));
-        inputDone = false;
+//     bot.onText(/英文全名$/, function(msg, match) {
+//         console.log('英文全名');
+//         bot.sendMessage(chatId, "請輸入您的英文全名", generateKeyboard(["取消更改"]));
+//         inputDone = false;
 
-        bot.on('message', function(msg) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                data.push({
-                    '英文全名': msg.text
-                });
-                console.log(data);
-                inputDone = true;
-                bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 data.push({
+//                     '英文全名': msg.text
+//                 });
+//                 console.log(data);
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//             }
+//         });
+//     });
 
-    bot.onText(/電話號碼$/, function(msg, match) {
-        console.log('電話號碼');
-        bot.sendMessage(chatId, "請輸入您的電話號碼", generateKeyboard(["取消更改"]));
-        var inputDone = false;
+//     bot.onText(/電話號碼$/, function(msg, match) {
+//         console.log('電話號碼');
+//         bot.sendMessage(chatId, "請輸入您的電話號碼", generateKeyboard(["取消更改"]));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    telephoneValidate(msg.text);
-                    data.push({
-                        '電話號碼': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請重新輸入您的電話號碼"));
-                    inputDone = false;
-                }
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     telephoneValidate(msg.text);
+//                     data.push({
+//                         '電話號碼': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請重新輸入您的電話號碼"));
+//                     inputDone = false;
+//                 }
+//             }
+//         });
+//     });
 
-    bot.onText(/照片$/, function(msg, match) {
-        console.log('照片');
-        bot.sendMessage(chatId, "請上傳您的照片...上載需時...請耐心等待", generateKeyboard(["取消更改"]));
-        var inputDone = false;
+//     bot.onText(/照片$/, function(msg, match) {
+//         console.log('照片');
+//         bot.sendMessage(chatId, "請上傳您的照片...上載需時...請耐心等待", generateKeyboard(["取消更改"]));
+//         var inputDone = false;
 
-        bot.on('message', function(msg) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
-        })
-        // reply on success, or must have some reply messages
-    });
+//         bot.on('message', function(msg) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
+//         })
+//         // reply on success, or must have some reply messages
+//     });
 
-        // bot.onText(/銀行$/, function(msg, match) { // $ is to prevent bug generated by 銀行 and 銀行戶口
-        //     console.log('銀行');
-        //     bot.sendMessage(chatId, "請選擇您的銀行", generateKeyboard(bankName));
-        //     var inputDone = false;
+//         // bot.onText(/銀行$/, function(msg, match) { // $ is to prevent bug generated by 銀行 and 銀行戶口
+//         //     console.log('銀行');
+//         //     bot.sendMessage(chatId, "請選擇您的銀行", generateKeyboard(bankName));
+//         //     var inputDone = false;
 
-        //     bot.on('message', function(msg, match) {
-        //         if (msg.text === "取消更改" && inputDone === false) {
-        //             inputDone = true;
-        //             bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-        //         }
+//         //     bot.on('message', function(msg, match) {
+//         //         if (msg.text === "取消更改" && inputDone === false) {
+//         //             inputDone = true;
+//         //             bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//         //         }
 
-        //         if (inputDone === false) {
-        //             try {
-        //                 data.push({
-        //                     '銀行': msg.text
-        //                 });
-        //                 console.log(data);
-        //                 inputDone = true;
-        //                 bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-        //             } catch (err) {}
-        //         }
-        //     });
-        // });
+//         //         if (inputDone === false) {
+//         //             try {
+//         //                 data.push({
+//         //                     '銀行': msg.text
+//         //                 });
+//         //                 console.log(data);
+//         //                 inputDone = true;
+//         //                 bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//         //             } catch (err) {}
+//         //         }
+//         //     });
+//         // });
 
-    bot.onText(/銀行戶口$/, function(msg, match) { // RegExp introduction at http://www.w3schools.com/jsref/jsref_obj_regexp.asp
-        console.log('銀行戶口');
-        bot.sendMessage(chatId, "請輸入您的銀行戶口", generateKeyboard(["取消更改"]));
-        var inputDone = false;
+//     bot.onText(/銀行戶口$/, function(msg, match) { // RegExp introduction at http://www.w3schools.com/jsref/jsref_obj_regexp.asp
+//         console.log('銀行戶口');
+//         bot.sendMessage(chatId, "請輸入您的銀行戶口", generateKeyboard(["取消更改"]));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)());
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)());
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '銀行戶口': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '銀行戶口': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    bot.onText(/性別$/, function(msg, match) {
-        console.log('性別');
-        bot.sendMessage(chatId, "請選擇您的性別", generateKeyboard(['男', '女']));
-        var inputDone = false;
+//     bot.onText(/性別$/, function(msg, match) {
+//         console.log('性別');
+//         bot.sendMessage(chatId, "請選擇您的性別", generateKeyboard(['男', '女']));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '性別': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '性別': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    // bot.onText(/儲存$/, function(msg) {
-    //     var chatId = msg.from.id;
-    //     console.log(chatId);
-    //     try {
-    //         savingFunction(chatId, data);
-    //         console.log('Save success');
-    //     } catch (err) {
-    //         console.log('Save Failed');
-    //         console.log(err);
-    //     }
+//     // bot.onText(/儲存$/, function(msg) {
+//     //     var chatId = msg.from.id;
+//     //     console.log(chatId);
+//     //     try {
+//     //         savingFunction(chatId, data);
+//     //         console.log('Save success');
+//     //     } catch (err) {
+//     //         console.log('Save Failed');
+//     //         console.log(err);
+//     //     }
 
-    // });
+//     // });
 
-    bot.onText(/顯示資料$/, function(msg) {
-        console.log('顯示資料');
-        var userinfo = '\n'; //used for storing the well structured output user data
+//     bot.onText(/顯示資料$/, function(msg) {
+//         console.log('顯示資料');
+//         var userinfo = '\n'; //used for storing the well structured output user data
 
-        for (j = 0; j < questionArray.length; j++) {
-            for (i = 0; i < data.length; i++) {
-                if (data[i][questionArray[j]] !== undefined) {
-                    //console.log(questionArray[j]);
-                    //console.log(data[i][questionArray[j]].pop());
-                    userinfo = userinfo + questionArray[j] + ":" + data[i].questionArray[j].pop() + "\n";
-                }
-            }
-        }
+//         for (j = 0; j < questionArray.length; j++) {
+//             for (i = 0; i < data.length; i++) {
+//                 if (data[i][questionArray[j]] !== undefined) {
+//                     //console.log(questionArray[j]);
+//                     //console.log(data[i][questionArray[j]].pop());
+//                     userinfo = userinfo + questionArray[j] + ":" + data[i].questionArray[j].pop() + "\n";
+//                 }
+//             }
+//         }
 
-        console.log("userinfo: " + userinfo);
+//         console.log("userinfo: " + userinfo);
 
-        bot.sendMessage(chatId, "您的用戶資料為：" + userinfo, generateKeyboard(["返回"]));
-        var inputDone = false;
+//         bot.sendMessage(chatId, "您的用戶資料為：" + userinfo, generateKeyboard(["返回"]));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "返回" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "返回" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-        });
-    });
+//         });
+//     });
 
-    bot.onText(/出生年份$/, function(msg, match) {
-        console.log('出生年份');
-        bot.sendMessage(chatId, "請輸入您的出生年份", generateKeyboard(["取消更改"]));
-        var inputDone = false;
+//     bot.onText(/出生年份$/, function(msg, match) {
+//         console.log('出生年份');
+//         bot.sendMessage(chatId, "請輸入您的出生年份", generateKeyboard(["取消更改"]));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '出生年份': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '出生年份': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    bot.onText(/地區$/, function(msg, match) {
-        console.log('地區');
-        bot.sendMessage(chatId, "請選擇您的地區", generateKeyboard(district));
-        var inputDone = false;
+//     bot.onText(/地區$/, function(msg, match) {
+//         console.log('地區');
+//         bot.sendMessage(chatId, "請選擇您的地區", generateKeyboard(district));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '地區': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '地區': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    bot.onText(/可工作場所$/, function(msg, match) {
-        console.log('可工作場所');
-        bot.sendMessage(chatId, "請選擇您的可工作場所", generateKeyboard(workArea));
-        var inputDone = false;
+//     bot.onText(/可工作場所$/, function(msg, match) {
+//         console.log('可工作場所');
+//         bot.sendMessage(chatId, "請選擇您的可工作場所", generateKeyboard(workArea));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '可工作場所': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '可工作場所': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    bot.onText(/銷售經驗$/, function(msg, match) {
-        console.log('銷售經驗');
-        bot.sendMessage(chatId, "請輸入您的銷售經驗", generateKeyboard(["取消更改"]));
-        var inputDone = false;
+//     bot.onText(/銷售經驗$/, function(msg, match) {
+//         console.log('銷售經驗');
+//         bot.sendMessage(chatId, "請輸入您的銷售經驗", generateKeyboard(["取消更改"]));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '銷售經驗': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '銷售經驗': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    bot.onText(/銷售產品類別$/, function(msg, match) {
-        console.log('銷售產品類別');
-        bot.sendMessage(chatId, "請選擇您的銷售產品類別", generateKeyboard(sellCate));
-        var inputDone = false;
+//     bot.onText(/銷售產品類別$/, function(msg, match) {
+//         console.log('銷售產品類別');
+//         bot.sendMessage(chatId, "請選擇您的銷售產品類別", generateKeyboard(sellCate));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '銷售產品類別': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '銷售產品類別': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    bot.onText(/工作日數$/, function(msg, match) {
-        console.log('工作日數');
-        bot.sendMessage(chatId, "請選擇您的工作日數", generateKeyboard(workDay));
-        var inputDone = false;
+//     bot.onText(/工作日數$/, function(msg, match) {
+//         console.log('工作日數');
+//         bot.sendMessage(chatId, "請選擇您的工作日數", generateKeyboard(workDay));
+//         var inputDone = false;
 
-        bot.on('message', function(msg, match) {
-            if (msg.text === "取消更改" && inputDone === false) {
-                inputDone = true;
-                bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
-            }
+//         bot.on('message', function(msg, match) {
+//             if (msg.text === "取消更改" && inputDone === false) {
+//                 inputDone = true;
+//                 bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray));
+//             }
 
-            if (inputDone === false) {
-                try {
-                    data.push({
-                        '工作日數': msg.text
-                    });
-                    console.log(data);
-                    inputDone = true;
-                    bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
-                } catch (err) {}
-            }
-        });
-    });
+//             if (inputDone === false) {
+//                 try {
+//                     data.push({
+//                         '工作日數': msg.text
+//                     });
+//                     console.log(data);
+//                     inputDone = true;
+//                     bot.sendMessage(chatId, "你輸入了: " + msg.text).then(bot.sendMessage(chatId, "請選擇想更改的資料", generateKeyboard(questionArray)));
+//                 } catch (err) {}
+//             }
+//         });
+//     });
 
-    /* this button caused some problem
-    bot.onText(/返回$/, function(msg, match) {
-        console.log('返回');
-        bot.sendMessage(chatId, "Welcome to DoChat", generateKeyboard(['更新用戶資料']));
-    }); 
-    */
+//     /* this button caused some problem
+//     bot.onText(/返回$/, function(msg, match) {
+//         console.log('返回');
+//         bot.sendMessage(chatId, "Welcome to DoChat", generateKeyboard(['更新用戶資料']));
+//     }); 
+//     */
 
-    // switch (userInputContent[count]) { // input validation by calling function
-    //     case "Name":
-    //         returnValue = nameValidate(msg.text);
-    //         //keyboard = kb_Hide;
-    //         if (returnValue === "-1") { // "-1" when char number <2 && input is number
-    //             continueFlag = false;
-    //         } else {
-    //             continueFlag = true;
-    //         }
-    //         break;
+//     // switch (userInputContent[count]) { // input validation by calling function
+//     //     case "Name":
+//     //         returnValue = nameValidate(msg.text);
+//     //         //keyboard = kb_Hide;
+//     //         if (returnValue === "-1") { // "-1" when char number <2 && input is number
+//     //             continueFlag = false;
+//     //         } else {
+//     //             continueFlag = true;
+//     //         }
+//     //         break;
 
-    //     case "Gender":
-    //         //console.log('In Gender..');
-    //         //keyboard = kb_Gender;
-    //         returnValue = genderValidate(msg.text);
-    //         if (returnValue === "-1") { // "-1" when input is neither male or female
-    //             continueFlag = false;
-    //         } else {
-    //             continueFlag = true;
-    //         }
-    //         break;
+//     //     case "Gender":
+//     //         //console.log('In Gender..');
+//     //         //keyboard = kb_Gender;
+//     //         returnValue = genderValidate(msg.text);
+//     //         if (returnValue === "-1") { // "-1" when input is neither male or female
+//     //             continueFlag = false;
+//     //         } else {
+//     //             continueFlag = true;
+//     //         }
+//     //         break;
 
-    //     case "Age":
-    //         returnValue = ageValidate(msg.text);
-    //         if (returnValue === "-1") { // "-1" when input doesn't lie between 18 and 65
-    //             continueFlag = false;
-    //         } else {
-    //             continueFlag = true;
-    //         }
-    //         break;
+//     //     case "Age":
+//     //         returnValue = ageValidate(msg.text);
+//     //         if (returnValue === "-1") { // "-1" when input doesn't lie between 18 and 65
+//     //             continueFlag = false;
+//     //         } else {
+//     //             continueFlag = true;
+//     //         }
+//     //         break;
 
-    //         case "Photo":                         // not working, testing by /photo command
-    //         console.log(msg.photo);
-    //         continueFlag=true;
-    //         break;
+//     //         case "Photo":                         // not working, testing by /photo command
+//     //         console.log(msg.photo);
+//     //         continueFlag=true;
+//     //         break;
 
 
-    //     case "SelfIntro":
-    //         returnValue = selfIntroValidate(msg.text);
-    //         if (returnValue === "-1") { // "-1" when char number is less than 10
-    //             continueFlag = false;
-    //         } else {
-    //             continueFlag = true;
-    //         }
-    //         break;
+//     //     case "SelfIntro":
+//     //         returnValue = selfIntroValidate(msg.text);
+//     //         if (returnValue === "-1") { // "-1" when char number is less than 10
+//     //             continueFlag = false;
+//     //         } else {
+//     //             continueFlag = true;
+//     //         }
+//     //         break;
 
-    //     default:
-    //         continueFlag = true;
-    // }
+//     //     default:
+//     //         continueFlag = true;
+//     // }
 
-    // if (continueFlag) {
-    //     data[count] = msg.text;
-    //     question = "Please enter your " + userInputContent[count + 1];
-    //     console.log(data[count]);
-    //     count++;
-    //     state++;
-    // } else {
-    //     question = "Please re-enter your " + userInputContent[count];
-    // }
+//     // if (continueFlag) {
+//     //     data[count] = msg.text;
+//     //     question = "Please enter your " + userInputContent[count + 1];
+//     //     console.log(data[count]);
+//     //     count++;
+//     //     state++;
+//     // } else {
+//     //     question = "Please re-enter your " + userInputContent[count];
+//     // }
 
-    // if (state < userInputContent.length) {
-    //     bot.sendMessage(chatId, question, chooseKeyboard(userInputContent[count]));
-    // }
+//     // if (state < userInputContent.length) {
+//     //     bot.sendMessage(chatId, question, chooseKeyboard(userInputContent[count]));
+//     // }
 
-    // if (count == userInputContent.length) {
+//     // if (count == userInputContent.length) {
 
-    //     for (var i = 0; i < userInputContent.length; i++) {
-    //         string = string + userInputContent[i] + ': ' + data[i] + '\n';
-    //     };
+//     //     for (var i = 0; i < userInputContent.length; i++) {
+//     //         string = string + userInputContent[i] + ': ' + data[i] + '\n';
+//     //     };
 
-    // bot.sendMessage(chatId, string);
+//     // bot.sendMessage(chatId, string);
 
-    // };
+//     // };
 
-    // });
-});
+//     // });
+// });
 
 
 
@@ -667,32 +760,32 @@ bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation 
 //     console.log(key);
 //     bot.sendMessage(fromId, resp,generateKeyboard(keyb[key]));
 // });
-bot.onText(/\/photo/, function(msg, match) { // /testing get photo path
-    var fromId = msg.from.id;
+// bot.onText(/\/photo/, function(msg, match) { // /testing get photo path
+//     var fromId = msg.from.id;
 
-    bot.on('message', function(msg) {
-        var fileID = msg.photo[3].file_id;
-        var photo = bot.getFile(fileID);
-        var photoURL = "";
+//     bot.on('message', function(msg) {
+//         var fileID = msg.photo[3].file_id;
+//         var photo = bot.getFile(fileID);
+//         var photoURL = "";
 
-        var photoPromise = bot.getFileLink(fileID);
-        console.log(Promise.resolve(photoPromise).then(function(value, callback) {
-            console.log(value);
-        }));
+//         var photoPromise = bot.getFileLink(fileID);
+//         console.log(Promise.resolve(photoPromise).then(function(value, callback) {
+//             console.log(value);
+//         }));
 
-        bot.sendMessage(fromId, photoURL);
-    });
-});
+//         bot.sendMessage(fromId, photoURL);
+//     });
+// });
 
-bot.onText(/\/message/, function(msg) { // /search now for return the name of uid = 1 from DB
-    console.log('In message...');
-    var fromId = msg.from.id; // will be used to /search (name / id) in future
-    var chatId = msg.chat.id; //getItemFromDB();
-    var answer = new Message().text('Hello, Sir').to(msg.chat.id);
-    //Telegram.messages.addChatUser(fromId, chatId, 0);
-    console.log('Answer: ' + answer);
-    bot2.sendMessage(fromId, answer);
-});
+// bot.onText(/\/message/, function(msg) { // /search now for return the name of uid = 1 from DB
+//     console.log('In message...');
+//     var fromId = msg.from.id; // will be used to /search (name / id) in future
+//     var chatId = msg.chat.id; //getItemFromDB();
+//     var answer = new Message().text('Hello, Sir').to(msg.chat.id);
+//     //Telegram.messages.addChatUser(fromId, chatId, 0);
+//     console.log('Answer: ' + answer);
+//     bot2.sendMessage(fromId, answer);
+// });
 
 bot.onText(/\/search/, function(msg, match) { // /search now for return the name of uid = 1 from DB
     var fromId = msg.from.id; // will be used to /search (name / id) in future
@@ -702,33 +795,7 @@ bot.onText(/\/search/, function(msg, match) { // /search now for return the name
 
 
 //Database related function
-function getItemFromDB(uid, callback) { //get items by uid from dynamoDB
-    uid = uid.toString();
-    //uid="-1";
-    var params = {
-        "TableName": "dochat-kpl-user",
-        "Key": {
-            "uid": {"S":uid},
-        }
-    }
-    return dynamodb.getItem(params, function(err, result) {
-        if (err)
-            console.log(err);
-        else {
-            callback && callback(result.Item);
-            return result.Item;
-        }
-    });
-};
 
-getItemFromDB(123, function(arr) { //callback function for getItemFromDB()
-    setValue(arr);
-});
-
-function setValue(value) { //to setValue by callback function
-    queryResult = [];
-    queryResult.push(value);
-};
 
 function savingFunction(id, data) {
     // var que = async.queue(function (task, callback){
