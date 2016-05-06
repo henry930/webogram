@@ -88,7 +88,7 @@ bot.onText(/\/secret/, function(msg, match){    //Secret function for internal t
 });
 
 //Main Function
-bot.onceText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
+bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
     //console.log('更新用戶資料');
 
     var chatId = msg.from.id;
