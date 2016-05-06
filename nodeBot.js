@@ -1,6 +1,6 @@
 //Add require npm package
 var fs = require('fs');
-var async = require('async');
+// var async = require('async');
 var TelegramBot = require('node-telegram-bot-api');
 
 //declaring bot token
@@ -55,6 +55,23 @@ var questionObject = {  中文全名:"",
                         工作日數:['三日檔', '七天檔', '超過十天檔'],
                         顯示資料:""
                     };
+
+var answerObject = {    uid:"nil",
+                        中文全名:"nil",
+                        英文全名:"nil",
+                        電話號碼:"nil",
+                        照片:"nil",
+                        銀行:"nil",
+                        銀行戶口:"nil",
+                        性別:"nil",
+                        出生年份:"nil",
+                        地區:"nil",
+                        可工作場所:"nil",
+                        銷售經驗:"nil",
+                        銷售產品類別:"nil",
+                        工作日數:"nil",
+                    };
+
 //starting server
 console.log('Starting nodeBot.js on localhost...');
 
@@ -66,11 +83,12 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
 });
 
 bot.onText(/\/secret/, function(msg, match){    //Secret function for internal testing
+    // generateItem(questionObject, data);
 
 });
 
 //Main Function
-bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
+bot.onceText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
     //console.log('更新用戶資料');
 
     var chatId = msg.from.id;
@@ -78,17 +96,38 @@ bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with in
     bot.sendMessage(chatId, resp, generateKeyboard(questionArray));
     
     bot.onText(/(.+)/, function(msg, match) { // /echo
-    var resp = "請輸入"+match[1]+": ";
-    bot.sendMessage(chatId, resp,generateKeyboard(questionObject[match[1]]));
+        var chatId = msg.from.id;
+        var resp = "請輸入"+match[1]+": ";
+        var entity = match[1];
+        console.log('match[1]'+match[1]);
+        bot.sendMessage(chatId, resp,generateKeyboard(questionObject[match[1]]));
+
+
+        bot.once('message',function(message){
+            console.log('entity:'+entity);
+            var chatId = message.from.id;
+            console.log('message:'+message.text);
+            answerObject[entity] = message.text;
+            answerObject.uid = chatId.toString();
+            
+            console.log(answerObject);
+            savingFunction(answerObject);
+            bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(questionArray));
+    
+        });
     });
 
 });
 
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
-    console.log(questionArray.length);
-    var tempArray = questionArray.slice(0);
-
+    // console.log(questionArray.length);
+    if(questionArray.length>1){
+        var tempArray = questionArray.slice(0);
+    }else{
+        var tempArray = questionArray;
+    }
+        
     function formKeyboard(a) {
         var keyboardArray = [];
         //keyboardArray.length = Math.ceil(questionArray.length/3);
@@ -145,55 +184,21 @@ function setValue(value) { //to setValue by callback function
 };
 
 //put
-function savingFunction(id, data) {
-    // var que = async.queue(function (task, callback){
-    //     console.log(task.name);
-    // }, 1);
-
-    // que.unshift(getItemFromDB(-1), function (err) {
-    //     console.log(getItemFromDB(-1));
-    //     console.log('fetched');
-    //     console(err);
-    // });
-
-    // que.push(counterAsync(), function (err) {
-    //     console.log('params done');
-    //     return putItemToDB(counterAsync());
-    // });
-    console.log(id);
-    console.log(data);
-    var param = buildParam(id, data);
+function savingFunction(data) {
+    var param = buildParam(data);
     putItemToDB(param);
 }
 
-function buildParam(id, data){
+function buildParam(data){
     console.log('buildParam');
+    console.log(data);
     var tableName = 'dochat-kpl-user';
-    var item = {
-        uid: id.toString(),
-        //chiName: 'abcdefg'
-        //generateForm(data),
-        chiName: data,
-    };
     var params = {
         TableName: tableName,
-        Item: item
+        Item: data
     };
 
     return params;
-}
-
-function genereateForm(data){
-    console.log('genereateForm');
-
-    var tempData = data.slice(0);
-    var dataObj = {};
-
-    for(var i = 0; i<tempData.length; i++){
-        dataObj[tempData[i]] = '3333';
-    }
-    console.log(dataObj);
-    //return putForm;
 }
 
 function putItemToDB(params) { //put item to DB
@@ -759,22 +764,23 @@ function putItemToDB(params) { //put item to DB
 //     console.log(key);
 //     bot.sendMessage(fromId, resp,generateKeyboard(keyb[key]));
 // });
-// bot.onText(/\/photo/, function(msg, match) { // /testing get photo path
-//     var fromId = msg.from.id;
+bot.onText(/\/photo/, function(msg, match) { // /testing get photo path
+    var fromId = msg.from.id;
 
-//     bot.on('message', function(msg) {
-//         var fileID = msg.photo[3].file_id;
-//         var photo = bot.getFile(fileID);
-//         var photoURL = "";
+    bot.on('message', function(msg) {
+        var fileID = msg.photo[3].file_id;
+        var photo = bot.getFile(fileID);
+        var photoURL = "";
 
-//         var photoPromise = bot.getFileLink(fileID);
-//         console.log(Promise.resolve(photoPromise).then(function(value, callback) {
-//             console.log(value);
-//         }));
+        var photoPromise = bot.getFileLink(fileID);
+        console.log(Promise.resolve(photoPromise).then(function(value, callback) {
+            console.log(value);
+            console.log(callback);
+        }));
 
-//         bot.sendMessage(fromId, photoURL);
-//     });
-// });
+        bot.sendMessage(fromId, photoURL);
+    });
+});
 
 // bot.onText(/\/message/, function(msg) { // /search now for return the name of uid = 1 from DB
 //     console.log('In message...');
@@ -796,70 +802,70 @@ bot.onText(/\/search/, function(msg, match) { // /search now for return the name
 //Database related function
 
 
-function savingFunction(id, data) {
-    // var que = async.queue(function (task, callback){
-    //     console.log(task.name);
-    // }, 1);
+// function savingFunction(id, data) {
+//     // var que = async.queue(function (task, callback){
+//     //     console.log(task.name);
+//     // }, 1);
 
-    // que.unshift(getItemFromDB(-1), function (err) {
-    //     console.log(getItemFromDB(-1));
-    //     console.log('fetched');
-    //     console(err);
-    // });
+//     // que.unshift(getItemFromDB(-1), function (err) {
+//     //     console.log(getItemFromDB(-1));
+//     //     console.log('fetched');
+//     //     console(err);
+//     // });
 
-    // que.push(counterAsync(), function (err) {
-    //     console.log('params done');
-    //     return putItemToDB(counterAsync());
-    // });
-    console.log(id);
-    console.log(data);
-    var param = buildParam(id, data);
-    putItemToDB(param);
-}
+//     // que.push(counterAsync(), function (err) {
+//     //     console.log('params done');
+//     //     return putItemToDB(counterAsync());
+//     // });
+//     console.log(id);
+//     console.log(data);
+//     var param = buildParam(id, data);
+//     putItemToDB(param);
+// }
 
-function buildParam(id, data){
-    console.log('buildParam');
-    var tableName = 'dochat-kpl-user';
-    var item = {
-        uid: id.toString(),
-        //chiName: 'abcdefg'
-        //generateForm(data),
-        chiName: data,
-    };
-    var params = {
-        TableName: tableName,
-        Item: item
-    };
+// function buildParam(id, data){
+//     console.log('buildParam');
+//     var tableName = 'dochat-kpl-user';
+//     var item = {
+//         uid: id.toString(),
+//         //chiName: 'abcdefg'
+//         //generateForm(data),
+//         chiName: data,
+//     };
+//     var params = {
+//         TableName: tableName,
+//         Item: item
+//     };
 
-    return params;
-}
+//     return params;
+// }
 
-function genereateForm(data){
-    console.log('genereateForm');
+// function genereateForm(data){
+//     console.log('genereateForm');
 
-    var tempData = data.slice(0);
-    var dataObj = {};
+//     var tempData = data.slice(0);
+//     var dataObj = {};
 
-    for(var i = 0; i<tempData.length; i++){
-        dataObj[tempData[i]] = '3333';
-    }
+//     for(var i = 0; i<tempData.length; i++){
+//         dataObj[tempData[i]] = '3333';
+//     }
 
-    console.log(dataObj);
+//     console.log(dataObj);
 
 
-    //return putForm;
-}
+//     //return putForm;
+// }
 
-function putItemToDB(params) { //put item to DB
-    dynamoDB.put(params, function(err, data) {
-        if (err) {
-            console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-        } else {
-            console.log("Added item:", JSON.stringify(data, null, 2));
-        }
-    });
-    console.log("Items are succesfully ingested in table ..................");
-};
+// function putItemToDB(params) { //put item to DB
+//     dynamoDB.put(params, function(err, data) {
+//         if (err) {
+//             console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+//         } else {
+//             console.log("Added item:", JSON.stringify(data, null, 2));
+//         }
+//     });
+//     console.log("Items are succesfully ingested in table ..................");
+// };
 
 // function counterAsync() {
 //     var uid = '4';
@@ -883,11 +889,11 @@ function putItemToDB(params) { //put item to DB
 // }
 
 
-bot.onText(/\/save/, function(msg) {
-    console.log('In \/save...');
-    genereateForm(data);    
-    //putItemToDB(counterAsync(id));
-});
+// bot.onText(/\/save/, function(msg) {
+//     console.log('In \/save...');
+//     genereateForm(data);    
+//     //putItemToDB(counterAsync(id));
+// });
 
 // //Input Validation
 // function nameValidate(nameInput) { //will be used for name input validation
