@@ -89,6 +89,12 @@ bot.onText(/\/secret/, function(msg, match){    //Secret function for internal t
 
 });
 
+bot.onText(/返回$/, function(msg){
+        
+        var fromId = msg.from.id;
+        var resp = 'Welcome to DoChat';
+        bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));     
+});
 //Main Function
 bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with input validation 
     
@@ -96,12 +102,7 @@ bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with in
     var resp = "請選擇需輸入的資料項目";
     bot.sendMessage(chatId, resp, generateKeyboard(questionArray));
     
-    bot.onText(/返回$/, function(msg){
-        
-        var fromId = msg.from.id;
-        var resp = 'Welcome to DoChat';
-        bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));     
-    });
+    
 
     bot.onText(/顯示資料$/, function(msg){
         
