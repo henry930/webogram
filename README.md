@@ -24,6 +24,11 @@ just use the command below to get all modules automatically:
 
 /echo text 	- let you echo your text
 ---------------------------------------------------
+2016-5-12 更新 @Keith
+
+1. nodeBot.js 暫時只差 顯示資料的function
+2. Data Validation will be done on web app side
+---------------------------------------------------
 2016-4-29 更新 @Keith
 
 1. 大砍，將bot.onText() Generalize 
