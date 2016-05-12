@@ -117,7 +117,11 @@ bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with in
         bot.sendMessage(fromId, resp, generateKeyboard(questionArray));     
     });
 
-    bot.onText(/(.+)/, function(msg, match) { // /echo
+    
+
+});
+
+bot.onText(/(.+)/, function(msg, match) { // /echo
         var chatId = msg.from.id;
         var resp = "請輸入"+match[1]+": ";
         var entity = match[1];
@@ -136,9 +140,6 @@ bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with in
     
         });
     });
-
-});
-
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
     
