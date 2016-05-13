@@ -49,13 +49,12 @@ var queryObject =   {   工作類別:['推廣員', '上貨', '查舖資料'],
                         銷售產品類別:['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'],
                         推廣牌子:["百佳", "惠康", "711", "OK", "萬寧", "屈臣", "千色", "街藥房", "莎莎", "卓悅", "崇光", "一田", "Aeon", "永安", "Piago", "Uny", "反斗城", "其他"],
                         年資:["1-3個月", "6-12個月", "1-3年", "4-6年", "6年以上"],
-                        工作日數:['三日檔', '七天檔', '超過十天檔'],
+                        // 工作日數:['三日檔', '七天檔', '超過十天檔'],
                     };
 
-var answerqueryObject = {   wid:"nil",
+var answerqueryObject = {   
                             工作類別:"nil",
-                            舖頭名稱:"nil",
-                            舖頭地址:"nil",
+                            舖頭資料:"nil",
                             工作開始時間:"nil",
                             工作結束時間:"nil",
                             開始日期:"nil",
@@ -63,7 +62,8 @@ var answerqueryObject = {   wid:"nil",
                             銷售產品類別:"nil",
                             推廣牌子:"nil",
                             年資:"nil",
-                            工作日數:"nil",
+                            wid:"nil",
+                            // 工作日數:"nil",
                         };
 
 //starting server
@@ -90,12 +90,26 @@ bot.onText(/返回$/, function(msg){
 bot.onText(/確定$/, function(msg){
         
         var fromId = msg.from.id;
-        var resp = '正在發送';
-        bot.sendMessage(fromId, resp, generateKeyboard(['開新工作']));     
+        getItemFromDB("kpl",function(result){
+            var resp = formList(result, queryArray);
+            bot.sendMessage(fromId, resp, generateKeyboard(["是", "否"]));
+        });
+             
+});
+
+bot.onText(/是$/, function(msg){
+        
+        var fromId = msg.from.id;
+        var resp = '請稍候...';
+        bot.sendMessage(fromId, resp);
+        bot.sendMessage(fromId, "Abc");     //in fact i want to show the worklist here
+        //on success we should do something
+        //filter()
+        //send message to to others
 });
 
 //Main Function
-bot.onText(/開新工作/, function(msg) { // a /profile variation with input validation 
+bot.onText(/開新工作$/, function(msg) { // a /profile variation with input validation 
     
     var chatId = msg.from.id;
     var resp = "請輸入工作名稱";
@@ -177,7 +191,7 @@ function getItemFromDB(uid, callback) { //get items by uid from dynamoDB
     var params = {
         "TableName": "dochat-kpl-worklist",
         "Key": {
-            "uid": {"S":uid},
+            "wid": {"S":uid},
         }
     }
     return dynamodb.getItem(params, function(err, result) {
@@ -226,3 +240,14 @@ function putItemToDB(params) { //put item to DB
     });
     console.log("Items are succesfully ingested in table ..................");
 };
+
+function formList(result, attribute){
+    //console.log(result[attribute[0]].S);
+    var list = "確定開新工作？\n";
+    for (var i = 0; i<attribute.length-2; i++){
+        list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";
+        console.log(list);
+    }
+
+    return list;
+}

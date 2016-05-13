@@ -100,24 +100,20 @@ bot.onText(/更新用戶資料/, function(msg) { // a /profile variation with in
     var resp = "請選擇需輸入的資料項目";
     bot.sendMessage(chatId, resp, generateKeyboard(questionArray));
     
-    
-
-    bot.onText(/顯示資料$/, function(msg){
-        
-        var fromId = msg.from.id;
-        var resp = '顯示資料：\n';
-        getItemFromDB(fromId, function(result){
-            
-            //not yet finished this part
-            console.log(result);
-            
-        });
-        bot.sendMessage(fromId, resp, generateKeyboard(questionArray));     
-    });
-
-    
 
 });
+
+bot.onText(/顯示資料$/, function(msg){
+        
+        var fromId = msg.from.id;
+        getItemFromDB(fromId, function(result){
+            //not yet finished this part
+            var resp = formList(result, questionArray);
+            bot.sendMessage(fromId, resp, generateKeyboard(questionArray));
+        });
+             
+});
+
 
 bot.onText(/(.+)/, function(msg, match) { // /echo
         var chatId = msg.from.id;
@@ -231,6 +227,14 @@ function putItemToDB(params) { //put item to DB
     console.log("Items are succesfully ingested in table ..................");
 };
 
+function formList(result, attribute){
+    var list = "顯示資料：\n";
+    for (var i = 0; i<attribute.length-2; i++){
+        list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";
+    }
+
+    return list;
+}
 //------------------------Everything Below Are Useless ----------21/4/2016-----------------------------------
 //Main Function Now
 // bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 
