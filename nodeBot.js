@@ -29,17 +29,13 @@ var bot = new TelegramBot(token, {
 });
 
 //Array used to generate keyboards, will be imported in the future, so wont be in this server file
-var contents = ["Name", "Gender", "Age", "WorkType", "UserType", "Company", "Experience", "District", "Marks", "WorkingHour", "Absent", "Photo", "SelfIntro"];
-var userInputContent = ["Name", "Gender", "Age", "WorkType", "Experience", "District", "Photo", "SelfIntro"];
-
-var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數", "顯示資料"  , "返回"  ];
-var bankName = ["匯豐", "恆生", "渣打", "中銀"];
-var workDay = ['三日檔', '七天檔', '超過十天檔'];
-var workArea = ['超巿', '萬屈', '日資場', '百貨公司', '反斗城', '街藥房'];
-var gender = ['男', '女'];
-var sellCate = ['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'];
-var district = ['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'];
-
+var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數", "顯示資料", "返回"  ];
+// var bankName = ["匯豐", "恆生", "渣打", "中銀"];
+// var workDay = ['三日檔', '七天檔', '超過十天檔'];
+// var workArea = ['超巿', '萬屈', '日資場', '百貨公司', '反斗城', '街藥房'];
+// var gender = ['男', '女'];
+// var sellCate = ['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'];
+// var district = ['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'];
 var questionObject = {  中文全名:"",
                         英文全名:"",
                         電話號碼:"",
@@ -50,6 +46,7 @@ var questionObject = {  中文全名:"",
                         出生年份:"",
                         地區:['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'],
                         可工作場所:['超巿', '萬屈', '日資場', '百貨公司', '反斗城', '街藥房'],
+                        工作類別:['推廣員', '上貨', '查舖資料'],
                         銷售經驗:"",
                         銷售產品類別:['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'],
                         工作日數:['三日檔', '七天檔', '超過十天檔'],
@@ -66,6 +63,7 @@ var answerObject = {    uid:"nil",
                         出生年份:"nil",
                         地區:"nil",
                         可工作場所:"nil",
+                        工作類別:"nil",
                         銷售經驗:"nil",
                         銷售產品類別:"nil",
                         工作日數:"nil",
@@ -130,7 +128,7 @@ bot.onText(/(.+)/, function(msg, match) { // /echo
 
         
         bot.once('message',function(message){
-
+ 
             var chatId = message.from.id;
             answerObject[entity] = message.text;
             answerObject.uid = chatId.toString();
@@ -139,7 +137,7 @@ bot.onText(/(.+)/, function(msg, match) { // /echo
             bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(questionArray));
     
         });
-    });
+});
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
     
