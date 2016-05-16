@@ -91,21 +91,31 @@ bot.onText(/確定$/, function(msg){
         
         var fromId = msg.from.id;
         getItemFromDB("kpl",function(result){
-            var resp = formList(result, queryArray);
-            bot.sendMessage(fromId, resp, generateKeyboard(["是", "否"]));
+            var resp = "確定開新工作？\n"+formList(result, queryArray);
+            bot.sendMessage(fromId, resp, generateKeyboard(["發送", "取消"]));
         });
              
 });
 
-bot.onText(/是$/, function(msg){
+bot.onText(/發送$/, function(msg){
         
         var fromId = msg.from.id;
         var resp = '請稍候...';
         bot.sendMessage(fromId, resp);
-        bot.sendMessage(fromId, "Abc");     //in fact i want to show the worklist here
+        getItemFromDB("kpl",function(result){
+            var memberList = queryFromDB(result);
+        });
+        // queryFromDB()；
         //on success we should do something
         //filter()
         //send message to to others
+});
+
+bot.onText(/取消$/, function(msg){
+        
+        var fromId = msg.from.id;
+        var resp = 'Welcome to Dochat';
+        bot.sendMessage(fromId, resp, generateKeyboard(['開新工作']));
 });
 
 //Main Function
@@ -116,12 +126,12 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
     bot.sendMessage(chatId, resp);
     
     bot.once('message',function(message){
-
+            console.log(message);
             var chatId = message.from.id;
             answerqueryObject.wid = message.text;
-
+            answerqueryObject.uid = message.from.id;
             //we need validation here!!!
-            savingFunction(answerqueryObject);
+            // savingFunction(answerqueryObject);
             bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
     
     });
@@ -241,12 +251,54 @@ function putItemToDB(params) { //put item to DB
     console.log("Items are succesfully ingested in table ..................");
 };
 
+function queryFromDB(criteria){
+    console.log(criteria);
+
+    var params = {
+    TableName: "dochat-kpl-user",
+    ProjectionExpression: "uid",
+    FilterExpression: "#a = :b and #c = :d",
+    ExpressionAttributeNames: {
+        "#a": "年資",
+        "#c": "工作類別"
+    },
+    ExpressionAttributeValues: {
+        ":b": criteria["年資"].S,
+        ":d": criteria["工作類別"].S
+    }
+    };
+
+    dynamoDB.scan(params, onScan);
+
+    function onScan(err, data) {
+        if (err) {
+            console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+        } else {
+            // print all the movies
+            console.log("Scan succeeded.");
+            console.log(data);
+            data.Items.forEach(function(item) {
+               console.log(item);
+            });
+
+            // continue scanning if we have more movies
+            if (typeof data.LastEvaluatedKey != "undefined") {
+                console.log("Scanning for more...");
+                params.ExclusiveStartKey = data.LastEvaluatedKey;
+                dynamoDB.scan(params, onScan);
+            }
+        }
+    }
+};
+
 function formList(result, attribute){
     //console.log(result[attribute[0]].S);
-    var list = "確定開新工作？\n";
+    var list = "";
     for (var i = 0; i<attribute.length-2; i++){
-        list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";
-        console.log(list);
+        if(result[attribute[i]].S != "nil"){
+            list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
+        }
+        // console.log(list);
     }
 
     return list;
