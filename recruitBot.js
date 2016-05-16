@@ -104,6 +104,7 @@ bot.onText(/發送$/, function(msg){
         bot.sendMessage(fromId, resp);
         getItemFromDB("kpl",function(result){
             var memberList = queryFromDB(result);
+            //send ack message
         });
         // queryFromDB()；
         //on success we should do something
@@ -126,10 +127,11 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
     bot.sendMessage(chatId, resp);
     
     bot.once('message',function(message){
-            console.log(message);
+            
             var chatId = message.from.id;
             answerqueryObject.wid = message.text;
             answerqueryObject.uid = message.from.id;
+            answerqueryObject.timestamp = message.date;
             //we need validation here!!!
             // savingFunction(answerqueryObject);
             bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
@@ -147,7 +149,7 @@ bot.onText(/(.+)/, function(msg, match) { // /echo
 
         
         bot.once('message',function(message){
-
+            
             var chatId = message.from.id;
             answerqueryObject[entity] = message.text;
             answerqueryObject.uid = chatId.toString();
@@ -276,9 +278,11 @@ function queryFromDB(criteria){
         } else {
             // print all the movies
             console.log("Scan succeeded.");
-            console.log(data);
             data.Items.forEach(function(item) {
-               console.log(item);
+               // console.log(item);
+               var targetID = item.uid;
+               bot.sendMessage(targetID, "wid", generateKeyboard(["yes", "no"]));
+
             });
 
             // continue scanning if we have more movies

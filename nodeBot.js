@@ -230,7 +230,9 @@ function putItemToDB(params) { //put item to DB
 function formList(result, attribute){
     var list = "顯示資料：\n";
     for (var i = 0; i<attribute.length-2; i++){
-        list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";
+        if(result[attribute[i]].S != "nil"){
+            list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
+        }
     }
 
     return list;
