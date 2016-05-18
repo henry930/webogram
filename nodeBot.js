@@ -6,11 +6,6 @@ var TelegramBot = require('node-telegram-bot-api');
 //declaring bot token
 var token = '189573317:AAEQXcSxr8YI1F5Zex65_TCvRc_jEtTi4UY';
 
-//declaring global variable
-var data = []; //data array
-var queryResult = []; // for query use
-var form = [];  //make data to become the correct format
-
 //declaring AWS-related variable
 var AWS = require('aws-sdk'); // For DynamoDB 
 AWS.config.update({ // THE KEYS MUST BE MOVED to separated file when in production stage
@@ -30,12 +25,6 @@ var bot = new TelegramBot(token, {
 
 //Array used to generate keyboards, will be imported in the future, so wont be in this server file
 var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所","工作類別", "年資", "銷售產品類別", "工作日數", "顯示資料", "返回"  ];
-// var bankName = ["匯豐", "恆生", "渣打", "中銀"];
-// var workDay = ['三日檔', '七天檔', '超過十天檔'];
-// var workArea = ['超巿', '萬屈', '日資場', '百貨公司', '反斗城', '街藥房'];
-// var gender = ['男', '女'];
-// var sellCate = ['食物', '朱古力', '飲品', '健康產品', '清潔用品', '淋浴洗頭產品', '電器', '玩具', '化粧品', '食油', '水餃煮食'];
-// var district = ['屯門', '元朗', '天水圍', '荃灣', '葵涌', '九龍西', '九龍東', '九龍中', '將軍澳', '沙田', '馬鞍山', '大埔', '上水粉嶺', '東涌', '港島'];
 var questionObject = {  中文全名:"",
                         英文全名:"",
                         電話號碼:"",
@@ -52,22 +41,22 @@ var questionObject = {  中文全名:"",
                         工作日數:['三日檔', '七天檔', '超過十天檔'],
                     };
 
-var answerObject = {    uid:"nil",
-                        中文全名:"nil",
-                        英文全名:"nil",
-                        電話號碼:"nil",
-                        照片:"nil",
-                        銀行:"nil",
-                        銀行戶口:"nil",
-                        性別:"nil",
-                        出生年份:"nil",
-                        地區:"nil",
-                        可工作場所:"nil",
-                        工作類別:"nil",
-                        年資:"nil",
-                        銷售產品類別:"nil",
-                        工作日數:"nil",
-                    };
+// var answerObject = {    uid:"nil",
+//                         中文全名:"nil",
+//                         英文全名:"nil",
+//                         電話號碼:"nil",
+//                         照片:"nil",
+//                         銀行:"nil",
+//                         銀行戶口:"nil",
+//                         性別:"nil",
+//                         出生年份:"nil",
+//                         地區:"nil",
+//                         可工作場所:"nil",
+//                         工作類別:"nil",
+//                         年資:"nil",
+//                         銷售產品類別:"nil",
+//                         工作日數:"nil",
+//                     };
 
 //starting server
 console.log('Starting nodeBot.js on localhost...');
@@ -77,14 +66,6 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
     var fromId = msg.from.id;
     var resp = 'Welcome to DoChat';
     bot.sendMessage(fromId, resp, generateKeyboard(['更新用戶資料']));//
-});
-
-bot.onText(/\/secret/, function(msg, match){    //Secret function for internal testing
-    // generateItem(questionObject, data);
-    bot.onText(/返回$/, function(msg){
-        
-    });
-
 });
 
 bot.onText(/返回$/, function(msg){
@@ -114,7 +95,6 @@ bot.onText(/顯示資料$/, function(msg){
              
 });
 
-
 bot.onText(/(.+)/, function(msg, match) { // /echo
         var chatId = msg.from.id;
         var resp = "請輸入"+match[1]+": ";
@@ -126,10 +106,13 @@ bot.onText(/(.+)/, function(msg, match) { // /echo
         bot.once('message',function(message){
  
             var chatId = message.from.id;
-            answerObject[entity] = message.text;
-            answerObject.uid = chatId.toString();
+
+            // answerObject[entity] = message.text;
+            // answerObject.uid = chatId.toString();
             
-            savingFunction(answerObject);
+            updateDB("dochat-kpl-user", chatId.toString(), entity, message.text);
+
+            // savingFunction(answerObject, "dochat-kpl-user");
             bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(questionArray));
     
         });
@@ -194,20 +177,14 @@ function getItemFromDB(uid, callback) { //get items by uid from dynamoDB
 //     setValue(arr);
 // });
 
-function setValue(value) { //to setValue by callback function
-    queryResult = [];
-    queryResult.push(value);
-};
-
 //put
-function savingFunction(data) {
-    var param = buildParam(data);
+function savingFunction(data, tableName) {
+    var param = buildParam(data, tableName);
     putItemToDB(param);
 }
 
-function buildParam(data){
+function buildParam(data, tableName){
     
-    var tableName = 'dochat-kpl-user';
     var params = {
         TableName: tableName,
         Item: data
@@ -230,13 +207,40 @@ function putItemToDB(params) { //put item to DB
 function formList(result, attribute){
     var list = "顯示資料：\n";
     for (var i = 0; i<attribute.length-2; i++){
-        if(result[attribute[i]].S != "nil"){
+        if( typeof(result[attribute[i]]) !== "undefined" && typeof(result[attribute[i]].S) !== "undefined"){
             list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
         }
     }
 
     return list;
 }
+
+function updateDB(tableName, key, col, value){
+    var params = {
+    TableName: tableName,
+    Key:{
+        "uid": key
+    },
+    UpdateExpression: "set #a = :b",
+    ExpressionAttributeNames:{
+        "#a": col
+    },
+    ExpressionAttributeValues:{
+        ":b":value
+    },
+    ReturnValues:"UPDATED_NEW"
+};
+
+console.log("Updating the item...");
+dynamoDB.update(params, function(err, data) {
+    if (err) {
+        console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+    } else {
+        console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+    }
+});
+}
+
 //------------------------Everything Below Are Useless ----------21/4/2016-----------------------------------
 //Main Function Now
 // bot.onText(/更新用戶資料/, function(msg, match) { // a /profile variation with input validation 

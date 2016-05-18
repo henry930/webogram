@@ -69,6 +69,7 @@
     "aws-sdk": "^2.3.0",
     "del": "^1.2.1",
     "event-stream": "^3.3.2",
+    "express": "^4.13.4",
     "gulp": "^3.9.1",
     "gulp-angular-templatecache": "^1.8.0",
     "gulp-concat": "^2.6.0",
@@ -92,6 +93,8 @@
     "node-telegram-bot-api": "^0.21.1",
     "q": "^1.4.1",
     "run-sequence": "^1.1.5",
+    "socket.io": "^1.4.6",
+    "socket.io-client": "^1.4.6",
     "st": "^0.5.5",
     "telegram-api": "^0.7.1"
   }

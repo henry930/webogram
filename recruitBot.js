@@ -28,6 +28,19 @@ var bot = new TelegramBot(token, {
     polling: true
 });
 
+
+var http = require('http').Server(app);
+//var io = require('./chatbox/chatbox.js');
+//var io = require('socket.io')(http);
+var ioClient = require('socket.io-client');
+
+//Express
+var express = require('express');
+var app = express(); //Express App
+
+var socket = ioClient.connect("http://localhost:8080");
+
+    
 //Array used to generate keyboards, will be imported in the future, so wont be in this server file
 
 // var questionArray = ["中文全名", "英文全名", "電話號碼", "照片", "銀行", "銀行戶口", "性別", "出生年份", "地區", "可工作場所", "銷售經驗", "銷售產品類別", "工作日數","工作類別", "顯示資料"  , "返回"  ];
@@ -78,6 +91,7 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
 
 bot.onText(/\/secret/, function(msg, match){    //Secret function for internal testing
     // generateItem(questionObject, data);
+
 });
 
 bot.onText(/返回$/, function(msg){
@@ -87,30 +101,6 @@ bot.onText(/返回$/, function(msg){
         bot.sendMessage(fromId, resp, generateKeyboard(['開新工作']));     
 });
 
-bot.onText(/確定$/, function(msg){
-        
-        var fromId = msg.from.id;
-        getItemFromDB("kpl",function(result){
-            var resp = "確定開新工作？\n"+formList(result, queryArray);
-            bot.sendMessage(fromId, resp, generateKeyboard(["發送", "取消"]));
-        });
-             
-});
-
-bot.onText(/發送$/, function(msg){
-        
-        var fromId = msg.from.id;
-        var resp = '請稍候...';
-        bot.sendMessage(fromId, resp);
-        getItemFromDB("kpl",function(result){
-            var memberList = queryFromDB(result);
-            //send ack message
-        });
-        // queryFromDB()；
-        //on success we should do something
-        //filter()
-        //send message to to others
-});
 
 bot.onText(/取消$/, function(msg){
         
@@ -125,40 +115,75 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
     var chatId = msg.from.id;
     var resp = "請輸入工作名稱";
     bot.sendMessage(chatId, resp);
-    
+    var packet = new Object();
+
     bot.once('message',function(message){
             
+            
             var chatId = message.from.id;
-            answerqueryObject.wid = message.text;
-            answerqueryObject.uid = message.from.id;
-            answerqueryObject.timestamp = message.date;
+            packet.wid = message.text;
+            packet.uid = chatId.toString();
+            packet.timestamp = message.date;
+            packet.state = "creating";
+            // socket.emit('msg', packet);
+            savingFunction(packet, "dochat-kpl-worklist");
+
+            bot.onText(/確定$/, function(msg){
+        
+                var fromId = msg.from.id;
+                var resp = "";
+                bot.sendMessage(fromId, resp, generateKeyboard(["發送", "取消"]));
+                getItemFromDB(packet.wid,function(result){
+                    var res = "確定開新工作？\n"+formList(result, queryArray);
+                    bot.sendMessage(fromId, res, generateKeyboard(["發送", "取消"]));
+                });
+             
+            });
+            
+            bot.onText(/發送$/, function(msg){
+        
+                var fromId = msg.from.id;
+                var resp = '正在開啟群組...';
+                bot.sendMessage(fromId, resp);
+                socket.emit('confirm',packet);
+                updateDB("dochat-kpl-worklist",packet.wid, "state", "matching");
+                
+            });
+
+            bot.onText(/(.+)/, function(msg, match) { // /echo
+                if (match[1] !="確定" || match[1] !="發送"){
+
+                    var chatId = msg.from.id;
+                    var resp = "請輸入"+match[1]+": ";
+                    var entity = match[1];
+                    bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
+
+                
+                    bot.once('message',function(message){
+                    
+                    var chatId = message.from.id;
+                    console.log("wid"+packet.wid);
+                    console.log("entity"+entity);
+                    console.log(message.text);
+                    updateDB("dochat-kpl-worklist", packet.wid.toString(), entity, message.text);
+
+                    // savingFunction(answerqueryObject, 'dochat-kpl-worklist');
+                    bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
+            
+                    });
+                }
+                
+            });
+            
             //we need validation here!!!
             // savingFunction(answerqueryObject);
             bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
-    
+
+
     });
 
 });
 
-bot.onText(/(.+)/, function(msg, match) { // /echo
-        var chatId = msg.from.id;
-        var resp = "請輸入"+match[1]+": ";
-        var entity = match[1];
-        // console.log('match[1]'+match[1]);
-        bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
-
-        
-        bot.once('message',function(message){
-            
-            var chatId = message.from.id;
-            answerqueryObject[entity] = message.text;
-            answerqueryObject.uid = chatId.toString();
-            
-            savingFunction(answerqueryObject);
-            bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
-    
-        });
-});
 
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
@@ -226,14 +251,13 @@ function setValue(value) { //to setValue by callback function
 };
 
 //put
-function savingFunction(data) {
-    var param = buildParam(data);
+function savingFunction(data, tableName) {
+    var param = buildParam(data, tableName);
     putItemToDB(param);
 }
 
-function buildParam(data){
+function buildParam(data, tableName){
     
-    var tableName = 'dochat-kpl-worklist';
     var params = {
         TableName: tableName,
         Item: data
@@ -295,11 +319,37 @@ function queryFromDB(criteria){
     }
 };
 
+function updateDB(tableName, key, col, value){
+    var params = {
+    TableName: tableName,
+    Key:{
+        "wid": key
+    },
+    UpdateExpression: "set #a = :b",
+    ExpressionAttributeNames:{
+        "#a": col
+    },
+    ExpressionAttributeValues:{
+        ":b":value
+    },
+    ReturnValues:"UPDATED_NEW"
+};
+
+console.log("Updating the item...");
+dynamoDB.update(params, function(err, data) {
+    if (err) {
+        console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+    } else {
+        console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+    }
+});
+}
+
+
 function formList(result, attribute){
-    //console.log(result[attribute[0]].S);
     var list = "";
     for (var i = 0; i<attribute.length-2; i++){
-        if(result[attribute[i]].S != "nil"){
+        if( typeof(result[attribute[i]]) !== "undefined" && typeof(result[attribute[i]].S) !== "undefined"){
             list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
         }
         // console.log(list);
@@ -307,3 +357,5 @@ function formList(result, attribute){
 
     return list;
 }
+
+
