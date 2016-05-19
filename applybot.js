@@ -47,9 +47,17 @@ io.on('connection', function(socket){
   });
 
   socket.on('confirm', function(msg){
+    var wid = msg.wid;
     console.log(msg);
     getItemFromDB(msg.wid, function(result){
-        console.log(result);
+        // console.log(result);
+        var wInfo = "您有新工作: \n";
+        queryFromDB(result, function(list){
+            // console.log(list.Item[0].uid);
+            console.log(list.uid);
+            bot.sendMessage(list.uid, wInfo, generateKeyboard(["應徵", "忽略"]));
+        });
+
         
     })
   
@@ -196,8 +204,8 @@ function putItemToDB(params) { //put item to DB
     console.log("Items are succesfully ingested in table ..................");
 };
 
-function queryFromDB(criteria){
-    console.log(criteria);
+function queryFromDB(criteria, callback){
+    // console.log(criteria);
 
     var params = {
     TableName: "dochat-kpl-user",
@@ -220,22 +228,28 @@ function queryFromDB(criteria){
             console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
         } else {
             // print all the movies
+
             console.log("Scan succeeded.");
             data.Items.forEach(function(item) {
-               // console.log(item);
-               var targetID = item.uid;
-               bot.sendMessage(targetID, "wid", generateKeyboard(["yes", "no"]));
-
+               // sendToCandidate(item.uid);
+               // var targetID = item.uid;
+               // bot.sendMessage(targetID, "wid", generateKeyboard(["yes", "no"]));
+                callback(item);
             });
-
+            // callback(data);
             // continue scanning if we have more movies
             if (typeof data.LastEvaluatedKey != "undefined") {
                 console.log("Scanning for more...");
                 params.ExclusiveStartKey = data.LastEvaluatedKey;
                 dynamoDB.scan(params, onScan);
+            }else{
+                // console.log(data);
+                // return data;
             }
         }
     }
+
+    // console.log(data);
 };
 
 function updateDB(tableName, key, col, value){
@@ -274,6 +288,19 @@ function formList(result, attribute){
     return list;
 }
 
+function buildInfo(result){
+    //console.log(result[attribute[0]].S);
+    console.log(result);
+    var list = "";
+    for (var i = 0; i<attribute.length-2; i++){
+        if(result[attribute[i]].S != "nil"){
+            list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
+        }
+        // console.log(list);
+    }
+
+    return list;
+}
 //Start server.
 http.listen(8080,'127.0.0.1',function(){
     console.log('Server Listening on Port 8080');

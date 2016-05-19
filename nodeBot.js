@@ -89,7 +89,7 @@ bot.onText(/顯示資料$/, function(msg){
         var fromId = msg.from.id;
         getItemFromDB(fromId, function(result){
             //not yet finished this part
-            var resp = formList(result, questionArray);
+            var resp = "顯示資料：\n"+formList(result, questionArray);
             bot.sendMessage(fromId, resp, generateKeyboard(questionArray));
         });
              
@@ -205,7 +205,7 @@ function putItemToDB(params) { //put item to DB
 };
 
 function formList(result, attribute){
-    var list = "顯示資料：\n";
+    var list = "";
     for (var i = 0; i<attribute.length-2; i++){
         if( typeof(result[attribute[i]]) !== "undefined" && typeof(result[attribute[i]].S) !== "undefined"){
             list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
