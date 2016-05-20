@@ -139,7 +139,7 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
                  
     });
 
-    bot.once('message',function(message){
+    bot.on('message',function(message){
             
             
             var chatId = message.from.id;

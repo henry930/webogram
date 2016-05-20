@@ -31,6 +31,7 @@ $npm install
 /echo text 	- let you echo your text
 
 ###Function List:
+
 generateKeyboard([youArray]);	
 getItemFromDB(primarykey, callback);				
 savingFunction(jsonobject, tableName);					
