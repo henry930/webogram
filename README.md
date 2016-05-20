@@ -1,30 +1,44 @@
+###Overview
+1.	web-app telegram
+2.	nodeBot.js
+		id: @testingDriveBot
+		更新用戶資料
+3.	recruitBot.js
+		id: @recruitmentbot
+		開新工作
+4.	applybot.js (constructing)
+		id: @applyjobbot
+		Handle Job Application Flow
+
 ###Dependencies
-welcome adam
-welcome victor
 
-Current: npm package: aws-sdk, node-telegram-bot-api
+npm packages:
+	
+	node-telegram-bot-api 
+	aws-sdk
+	socket.io
+	socket.io-client
+	express
+	http
 
-No longer use: mysql, telegram-bot-api, telegram-bot-bootstrap
-
-just use the command below to get all modules automatically:
-
-````npm install````
-
-###Main Program (nodeBot.js)
-
-而家呢個program暫時都係一個telegram bot, 要用telegram add @testingDriveBot
+npm installation
+$npm install
 
 ####Command List：
 
 /start		- send welcoming message 
 
-/profile	- create a profile, no data is inserted to dynamoDB
-
-/newprofile - mainly work as /profile, apply part of input validation
-
-/search 	- only use for searching the record with uid = 1 
-
 /echo text 	- let you echo your text
+
+###Function List:
+generateKeyboard([youArray]);	
+getItemFromDB(primarykey, callback);				
+savingFunction(jsonobject, tableName);					
+updateDB(tableName, key, col, value);
+
+
+
+ChangeLog
 ---------------------------------------------------
 2016-5-12 更新 @Keith
 
@@ -47,23 +61,6 @@ just use the command below to get all modules automatically:
 3. 更新keyboard, 以後function keyboard 可以刪除
 
 ---------------------------------------------------
-
-####Input Validation Functions (for development):
-
-nameValidate(nameInput): return -1 when nameInput.length <2
-
-ageValidate(ageInput): return -1 when ageInput <18 or ageInput >65
-
-genderValidate(genderInput): return -1 when genderInput not in the two arrays
-
-districtValidate(districtInput): return -1 when districtInput not in the two arrays
-
-selfIntroValidate(selfIntroInput): return -1 when selfIntroInput.length <10
-
-chooseKeyboard(userInputContent[count]): return suitable customized keyboard //kb Hide = hide the keyboard
-
-
-
 [![Stories in Ready](https://badge.waffle.io/zhukov/webogram.png?label=ready&title=Ready)](https://waffle.io/zhukov/webogram)
 ## [Webogram](https://web.telegram.org) — Telegram Web App
 
@@ -74,8 +71,7 @@ MTProto data can be carried over HTTP (SSL is also supported), so this project i
 That said, I'm using this app myself and I'd like to share its sources, so anyone can contribute to the development. Any help is welcome!
 
 
-### Interface Henry
-
+### Interface
 
 Here are some screenshots of the interface:
 
@@ -128,7 +124,6 @@ npm install
 ```
 
 This will install all the needed dependencies.
-
 
 #### Running web-server
 
