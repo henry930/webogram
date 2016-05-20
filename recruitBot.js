@@ -89,10 +89,6 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
     bot.sendMessage(fromId, resp, generateKeyboard(['開新工作']));//
 });
 
-bot.onText(/\/secret/, function(msg, match){    //Secret function for internal testing
-    // generateItem(questionObject, data);
-
-});
 
 bot.onText(/返回$/, function(msg){
         
@@ -117,6 +113,7 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
     bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
 
     var packet = new Object();
+    var terminate = 0;
     packet.wid = msg.date.toString();
     packet.uid = chatId.toString();
     packet.timestamp = msg.date;
@@ -125,7 +122,6 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
     savingFunction(packet, "dochat-kpl-worklist");
 
     bot.onText(/確定$/, function(msg){
-        
         var fromId = msg.from.id;
         var resp = "";
         bot.sendMessage(fromId, resp, generateKeyboard(["發送", "取消"]));
@@ -146,28 +142,53 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
                  
     });
 
-    bot.onText(/(.+)/, function(msg, match) { // /echo
-        console.log(msg.text);
-        console.log(match);
-        var chatId = msg.from.id;
-        var resp = "請輸入"+match[1]+": ";
-        var entity = match[1];
-        // console.log('match[1]'+match[1]);
-        bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
+    attributeListener(packet);
+    // bot.onText(/(.+)/, function(msg, match) { // /echo
+    //     console.log(msg.text);
+    //     console.log(match);
+    //     var chatId = msg.from.id;
+    //     var resp = "請輸入"+match[1]+": ";
+    //     var entity = match[1];
+    //     // console.log('match[1]'+match[1]);
+    //     bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
 
         
-        bot.once('message',function(message){
+    //     bot.once('message',function(message){
  
-            var chatId = message.from.id;
+    //         var chatId = message.from.id;
     
-            updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
-            bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
+    //         updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
+    //         bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
     
-        });
-    });
+    //     });
+    // });
 
 });
 
+function attributeListener(packet){
+    console.log('attributeListener');
+    var entity = "";
+    bot.once("message", function(msg){
+        var chatId = msg.from.id;
+        var resp = "請輸入"+msg.text+": ";
+        // entity = msg.text;
+        // console.log('match[1]'+match[1]);
+        bot.sendMessage(chatId, resp,generateKeyboard(queryObject[msg.text]));
+        // valueListener(packet, entity);
+    }).then(valueListener(packet, msg.text));
+
+}
+
+function valueListener(packet, entity){
+    console.log('valueListener');
+    bot.once("message", function(message){
+        var chatId = message.from.id;
+        updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
+        bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
+    }).then(attributeListener(packet));
+
+    // attributeListener(packet);
+}
 
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
