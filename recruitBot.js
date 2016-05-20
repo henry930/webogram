@@ -113,9 +113,16 @@ bot.onText(/取消$/, function(msg){
 bot.onText(/開新工作$/, function(msg) { // a /profile variation with input validation 
     
     var chatId = msg.from.id;
-    var resp = "請輸入工作名稱";
-    bot.sendMessage(chatId, resp);
+    var resp = "請選擇需輸入的資料項目";
+    bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
+
     var packet = new Object();
+    packet.wid = msg.date.toString();
+    packet.uid = chatId.toString();
+    packet.timestamp = msg.date;
+    packet.state = "creating";
+    
+    savingFunction(packet, "dochat-kpl-worklist");
 
     bot.onText(/確定$/, function(msg){
         
@@ -139,42 +146,24 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
                  
     });
 
-    bot.on('message',function(message){
-            
-            
-            var chatId = message.from.id;
-            packet.wid = message.text;
-            packet.uid = chatId.toString();
-            packet.timestamp = message.date;
-            packet.state = "creating";
-            // socket.emit('msg', packet);
-            savingFunction(packet, "dochat-kpl-worklist");    
-            
-            //we need validation here!!!
-            // savingFunction(answerqueryObject);
-            bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
-
-            bot.once('message', function(msg) { // /echo
-                var chatId = msg.from.id;
-                var resp = "請輸入"+msg.text+": ";
-                var entity = msg.text;
-                bot.sendMessage(chatId, resp,generateKeyboard(queryObject[msg.text]));
+    bot.onText(/(.+)/, function(msg, match) { // /echo
+        console.log(msg.text);
+        console.log(match);
+        var chatId = msg.from.id;
+        var resp = "請輸入"+match[1]+": ";
+        var entity = match[1];
+        // console.log('match[1]'+match[1]);
+        bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
 
         
-                bot.once('message',function(message){
-                
-                    var chatId = message.from.id;
-                    // console.log("wid"+packet.wid);
-                    // console.log("entity"+entity);
-                    // console.log(message.text);
-                    updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
-
-                    // savingFunction(answerqueryObject, 'dochat-kpl-worklist');
-                    bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
-            
-                });        
-
-            });
+        bot.once('message',function(message){
+ 
+            var chatId = message.from.id;
+    
+            updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
+            bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
+    
+        });
     });
 
 });
