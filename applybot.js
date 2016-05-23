@@ -37,8 +37,11 @@ var ioClient = require('socket.io-client');
 //Express
 var express = require('express');
 var app = express(); //Express App
-//var app = require('express')();
-//var http = require('http').Server(app);
+
+var showList = ["舖頭資料", "工作開始時間", "工作結束時間", "開始日期", "結束日期", "銷售產品類別","推廣牌子"];
+
+
+
 io.on('connection', function(socket){
   
   socket.on('msg', function(msg){
@@ -46,24 +49,30 @@ io.on('connection', function(socket){
     console.log(msg);
   });
 
-  socket.on('confirm', function(msg){
-    var wid = msg.wid;
-    console.log(msg);
-    getItemFromDB(msg.wid, function(result){
-        // console.log(result);
-        var wInfo = "您有新工作: \n";
-        queryFromDB(result, function(list){
-            // console.log(list.Item[0].uid);
-            console.log(list.uid);
-            bot.sendMessage(list.uid, wInfo, generateKeyboard(["應徵", "忽略"]));
-        });
+  socket.on('confirm', function(packet){
+    var wid = packet.wid;
+    var wInfo = "您有新工作: \n";
 
+    getItemFromDB(packet.wid, function(result){
+
+        for(var i =0; i<showList.length; i++){
+            if( typeof(result[showList[i]]) !== "undefined" && typeof(result[showList[i]].S) !== "undefined"){
+                wInfo = wInfo+ showList[i]+ ":"+ result[showList[i]].S+ "\n";   
+            }
+        }
         
+        queryFromDB(result, function(list){
+            bot.sendMessage(list.uid, wInfo, generateKeyboard(["應徵", "忽略"]));
+            
+        }); 
+
+        invokeListener(packet, wInfo);    
     })
-  
+
   });
 
 });
+
 
 //starting server
 console.log('Starting recruitBot.js on localhost...');
@@ -75,41 +84,6 @@ bot.onText(/\/start/, function(msg, match) { //  /start to send Welcoming messag
     bot.sendMessage(fromId, resp);//
 });
 
-bot.onText(/\/secret/, function(msg, match){    //Secret function for internal testing
-    // generateItem(questionObject, data);
-    updateDB("dochat-kpl-current", msg.from.id.toString() ,"abc", "1");
-    bot.sendMessage(msg.from.id, "hi henry");
-});
-
-bot.onText(/應徵/, function(msg){
-    var chatId = msg.from.id;
-    bot.sendMessage(chatId, "已發送應徵請求");
-});
-
-bot.onText(/忽略/, function(msg){
-    var chatId = msg.from.id;
-    bot.sendMessage(chatId, "已忽略工作");
-});
-
-bot.onText(/(.+)/, function(msg, match) { // /echo
-        var chatId = msg.from.id;
-        var resp = "請輸入"+match[1]+": ";
-        var entity = match[1];
-        // console.log('match[1]'+match[1]);
-        // bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
-
-        
-        bot.once('message',function(message){
-            
-            var chatId = message.from.id;
-            answerqueryObject[entity] = message.text;
-            answerqueryObject.uid = chatId.toString();
-            
-            savingFunction(answerqueryObject);
-            // bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
-    
-        });
-});
 
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
@@ -279,7 +253,7 @@ function formList(result, attribute){
     //console.log(result[attribute[0]].S);
     var list = "";
     for (var i = 0; i<attribute.length-2; i++){
-        if(result[attribute[i]].S != "nil"){
+        if( typeof(result[attribute[i]]) !== "undefined" && typeof(result[attribute[i]].S) !== "undefined"){
             list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
         }
         // console.log(list);
@@ -293,7 +267,7 @@ function buildInfo(result){
     console.log(result);
     var list = "";
     for (var i = 0; i<attribute.length-2; i++){
-        if(result[attribute[i]].S != "nil"){
+        if( typeof(result[attribute[i]]) !== "undefined" && typeof(result[attribute[i]].S) !== "undefined"){
             list = list+ attribute[i]+ ":"+ result[attribute[i]].S+ "\n";    
         }
         // console.log(list);
@@ -301,6 +275,38 @@ function buildInfo(result){
 
     return list;
 }
+
+//卡關，要用inline keyboard
+function invokeListener(packet, wInfo){
+    bot.on("message", function(msg){
+        var chatId = msg.from.id;
+
+        if(msg.text =="應徵"){
+            bot.sendMessage(chatId, "已發送應徵請求");
+            sendToBoss(chatId, packet, wInfo);
+
+        }
+        
+        if(msg.text =="接受"){
+            console.log("接受");
+            bot.sendMessage(chatId, "新增員工至工作群組");
+            //open GROUP!!!!
+        }
+
+        if(msg.text =="忽略"){
+            console.log("忽略");
+            bot.sendMessage(chatId, "已忽略工作");
+            return;
+        }
+
+    });
+}
+
+function sendToBoss(fromId, packet, wInfo){
+    var bossId = packet.uid;
+    bot.sendMessage(bossId, wInfo, generateKeyboard(["接受", "忽略"]));
+}
+
 //Start server.
 http.listen(8080,'127.0.0.1',function(){
     console.log('Server Listening on Port 8080');
