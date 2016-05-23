@@ -107,7 +107,7 @@ bot.onText(/取消$/, function(msg){
 
 //Main Function
 bot.onText(/開新工作$/, function(msg) { // a /profile variation with input validation 
-    
+    var status = 0;
     var chatId = msg.from.id;
     var resp = "請選擇需輸入的資料項目";
     bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
@@ -120,75 +120,10 @@ bot.onText(/開新工作$/, function(msg) { // a /profile variation with input v
     packet.state = "creating";
     
     savingFunction(packet, "dochat-kpl-worklist");
-
-    bot.onText(/確定$/, function(msg){
-        var fromId = msg.from.id;
-        var resp = "";
-        bot.sendMessage(fromId, resp, generateKeyboard(["發送", "取消"]));
-        getItemFromDB(packet.wid,function(result){
-            var res = "確定開新工作？\n"+formList(result, queryArray);
-            bot.sendMessage(fromId, res, generateKeyboard(["發送", "取消"]));
-        });
-     
-    });
-            
-    bot.onText(/發送$/, function(msg){
-        
-                var fromId = msg.from.id;
-                var resp = '正在開啟群組...';
-                bot.sendMessage(fromId, resp, generateKeyboard(["開新工作"]));
-                socket.emit('confirm',packet);
-                updateDB("dochat-kpl-worklist",packet.wid, "state", "matching");
-                 
-    });
-
-    attributeListener(packet);
-    // bot.onText(/(.+)/, function(msg, match) { // /echo
-    //     console.log(msg.text);
-    //     console.log(match);
-    //     var chatId = msg.from.id;
-    //     var resp = "請輸入"+match[1]+": ";
-    //     var entity = match[1];
-    //     // console.log('match[1]'+match[1]);
-    //     bot.sendMessage(chatId, resp,generateKeyboard(queryObject[match[1]]));
-
-        
-    //     bot.once('message',function(message){
- 
-    //         var chatId = message.from.id;
     
-    //         updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
-    //         bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
+    invokeListener(msg, packet, status);
     
-    //     });
-    // });
-
 });
-
-function attributeListener(packet){
-    console.log('attributeListener');
-    var entity = "";
-    bot.once("message", function(msg){
-        var chatId = msg.from.id;
-        var resp = "請輸入"+msg.text+": ";
-        // entity = msg.text;
-        // console.log('match[1]'+match[1]);
-        bot.sendMessage(chatId, resp,generateKeyboard(queryObject[msg.text]));
-        // valueListener(packet, entity);
-    }).then(valueListener(packet, msg.text));
-
-}
-
-function valueListener(packet, entity){
-    console.log('valueListener');
-    bot.once("message", function(message){
-        var chatId = message.from.id;
-        updateDB("dochat-kpl-worklist", packet.wid, entity, message.text);
-        bot.sendMessage(chatId, "請選擇需輸入的資料項目", generateKeyboard(queryArray));
-    }).then(attributeListener(packet));
-
-    // attributeListener(packet);
-}
 
 //Keyboard Generation
 function generateKeyboard(questionArray, hideKeyboard) {
@@ -350,6 +285,65 @@ dynamoDB.update(params, function(err, data) {
 });
 }
 
+function pressConfirm(msg, packet){
+    var fromId = msg.from.id;
+    getItemFromDB(packet.wid,function(result){
+        var res = "確定開新工作？\n"+formList(result, queryArray);
+        bot.sendMessage(fromId, res, generateKeyboard(["發送", "取消"]));
+    });
+}
+
+function pressSend(msg, packet){
+    var fromId = msg.from.id;
+    var resp = '正在開啟群組...';
+    bot.sendMessage(fromId, resp, generateKeyboard(["開新工作"]));
+    socket.emit('confirm',packet);
+    updateDB("dochat-kpl-worklist",packet.wid, "state", "matching");
+
+}
+
+function invokeListener(msg, packet, status){
+    bot.once("message", function(msg){
+        if(msg.text =="開新工作"){
+            return;
+        }
+        
+        if(msg.text =="確定"){
+            pressConfirm(msg, packet);
+            invokeListener(msg, packet, status);
+            return;
+        }
+
+        if(msg.text =="發送"){
+            console.log("send");
+            pressSend(msg, packet);
+        }
+
+        console.log("status:"+status);
+        if(status ==0){
+            key = msg.text;
+            var chatId = msg.from.id;
+            var resp = "請輸入"+msg.text+": ";
+            bot.sendMessage(chatId, resp,generateKeyboard(queryObject[msg.text]));
+            status = 1;
+            console.log("status:"+status);
+            console.log("key:"+key);
+            invokeListener(msg, packet, status);
+        }
+        else{
+            var value = msg.text;
+            var chatId = msg.from.id;
+            var resp = "請選擇需輸入的資料項目";
+            updateDB("dochat-kpl-worklist", packet.wid, key, value);
+            bot.sendMessage(chatId, resp, generateKeyboard(queryArray));
+            console.log("why");
+            status = 0;
+            invokeListener(msg, packet, status);
+
+        }
+
+    });
+}
 
 function formList(result, attribute){
     var list = "";
