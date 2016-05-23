@@ -1,3 +1,67 @@
+###Overview
+1.	web-app telegram
+2.	nodeBot.js
+		id: @testingDriveBot
+		更新用戶資料
+3.	recruitBot.js
+		id: @recruitmentbot
+		開新工作
+4.	applybot.js (constructing)
+		id: @applyjobbot
+		Handle Job Application Flow
+
+###Dependencies
+
+npm packages:
+	
+	node-telegram-bot-api 
+	aws-sdk
+	socket.io
+	socket.io-client
+	express
+	http
+
+npm installation
+$npm install
+
+####Command List：
+
+/start		- send welcoming message 
+
+/echo text 	- let you echo your text
+
+###Function List:
+
+generateKeyboard([youArray]);	
+getItemFromDB(primarykey, callback);				
+savingFunction(jsonobject, tableName);					
+updateDB(tableName, key, col, value);
+
+
+
+ChangeLog
+---------------------------------------------------
+2016-5-12 更新 @Keith
+
+1. nodeBot.js 暫時只差 顯示資料的function
+2. Data Validation will be done on web app side
+---------------------------------------------------
+2016-4-29 更新 @Keith
+
+1. 大砍，將bot.onText() Generalize 
+2. 新的Function List:
+	generateKeyboard([youArray]);	
+	getItemFromDB();				
+	putItemToDB();					
+	bot.onText(secret)	//For Testing
+---------------------------------------------------
+2016-4-14 更新 @Keith
+
+1. 可以使用generateKeyboard([yourArray]); 
+2. 新增顯示資料／返回 功能
+3. 更新keyboard, 以後function keyboard 可以刪除
+
+---------------------------------------------------
 [![Stories in Ready](https://badge.waffle.io/zhukov/webogram.png?label=ready&title=Ready)](https://waffle.io/zhukov/webogram)
 ## [Webogram](https://web.telegram.org) — Telegram Web App
 
@@ -9,7 +73,6 @@ That said, I'm using this app myself and I'd like to share its sources, so anyon
 
 
 ### Interface
-
 
 Here are some screenshots of the interface:
 
@@ -62,7 +125,6 @@ npm install
 ```
 
 This will install all the needed dependencies.
-
 
 #### Running web-server
 
